@@ -23,11 +23,13 @@ public class GetFullText {
     private static final Logger log = Logger.getLogger(GetFullText.class.getName());
     @Value("${classifier.run}")
     private boolean runTextAnalizer;
+    @Value("${classifier.url}")
+    private String urlTextAnalizer;
     
     @RequestMapping(value = "/fullText", method = {RequestMethod.POST}, consumes = {"application/json"})
     public String getFullText(@RequestBody InputData input) throws Exception{
         PatternFinder patternFinder = new PatternFinder();  
-        AbbrResolver abbrResolver = new AbbrResolver(input.getText(), runTextAnalizer);
+        AbbrResolver abbrResolver = new AbbrResolver(input.getText(), runTextAnalizer, urlTextAnalizer);
         TextManager textManager = new TextManager(patternFinder, abbrResolver);              
             try {
             List<Sentence> sentences = textManager.splitText(input.getText(), findAbbrPanel); 

@@ -45,13 +45,14 @@ public class AbbrResolver {
     private static String textPO = null;
     private String text;
     private boolean runTextAnalizer;
-    public AbbrResolver(String text, boolean runTextAnalizer) {
+    private static String urlTextAnalizer;
+    
+    public AbbrResolver(String text, boolean runTextAnalizer, String urlTextAnalizer) {
         this.text = text;
         this.runTextAnalizer = runTextAnalizer;
+        AbbrResolver.urlTextAnalizer = urlTextAnalizer;
     }    
-    public void setText(String text) {
-        this.text = text;
-    }       
+     
     public void fillAbbrDescriptions(String text, DBManager dictionary, List<Descriptor> descriptors, JPanel findAbbrPanel) throws Exception {
         log.info("Start fillAbbrDescriptions()");
         if (textPO == null && runTextAnalizer)
@@ -464,7 +465,7 @@ public class AbbrResolver {
         String textStream = new String(outputBuffer.toByteArray(), "UTF-8");
         input.setText(textStream);
         try {
-            response = restTemplate.postForEntity("http://localhost:8080/TextAnalizerREST-0.4/predictions", entity, String.class);
+            response = restTemplate.postForEntity(urlTextAnalizer, entity, String.class);
             System.out.println("response.getBody() = " + response.getBody());
             return getTopClassifierResult(getClassifierResult(response.getBody())).toLowerCase();
         }

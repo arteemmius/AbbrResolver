@@ -309,7 +309,7 @@ public class MainWindow extends javax.swing.JFrame {
             findAbbrPanel.revalidate();
 
             PatternFinder patternFinder = new PatternFinder();
-            AbbrResolver abbrResolver = new AbbrResolver(text, true);
+            AbbrResolver abbrResolver = new AbbrResolver(text, true, "http://localhost:8080/TextAnalizerREST-0.4/predictions");
             TextManager textManager = new TextManager(patternFinder, abbrResolver);
 
             List<Sentence> sentences = textManager.splitText(text, findAbbrPanel);

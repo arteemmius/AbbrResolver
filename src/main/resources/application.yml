@@ -1,2 +1,3 @@
 classifier:
   run: true
+  url: http://localhost:8080/TextAnalizerREST-0.4/predictions

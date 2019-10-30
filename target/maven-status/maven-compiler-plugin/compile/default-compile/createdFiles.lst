@@ -19,7 +19,6 @@ com\university\abbrresolver\realization\AbbrResolver.class
 com\university\abbrresolver\realization\ImportTxt.class
 com\university\abbrresolver\frame\MainWindow$1.class
 com\mai\textanalyzer\web\vaadin\pages\classification\OutputData.class
-com\university\abbrresolver\frame\Input.class
 com\university\abbrresolver\beans\ShortType.class
 com\university\abbrresolver\realization\DBManager.class
 com\university\abbrresolver\frame\InputData.class

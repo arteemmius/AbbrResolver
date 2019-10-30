@@ -1,4 +1,3 @@
 classifier:
   run: true
-rest:
-  path: /fullText
+  url: http://localhost:8080/TextAnalizerREST-0.4/predictions
