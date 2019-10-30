@@ -1,0 +1,80 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package com.university.abbrresolver.frame;
+
+import com.university.abbrresolver.beans.Sentence;
+import static com.university.abbrresolver.frame.MainWindow.findAbbrPanel;
+import static com.university.abbrresolver.frame.MainWindow.jMorfSdk;
+import com.university.abbrresolver.realization.AbbrResolver;
+import com.university.abbrresolver.realization.PatternFinder;
+import com.university.abbrresolver.realization.TextManager;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.log4j.Logger;
+
+/**
+ *
+ * @author artee
+ */
+public class Input {
+    private static final Logger log = Logger.getLogger(Input.class.getName());
+    public static void main(String[] args) throws IOException { 
+        String line;
+        PatternFinder patternFinder = new PatternFinder();        
+        //FileReader reader = new FileReader("d:\\modeluper\\DocForTest\\Астрономия\\0231737bae6d321179db98b04c3c9a53.xml.txt");
+        BufferedReader reader0 = new BufferedReader(new InputStreamReader(new FileInputStream("d:\\modeluper\\DocForTest\\Астрономия\\0231737bae6d321179db98b04c3c9a53.xml.txt"), "UTF-8"));
+            String text = "";
+            /*
+            int c;
+            int i = 0;
+            while((c=reader.read())!=-1){
+                 
+                text = text + (char)c;
+            }
+            */            
+            while ((line = reader0.readLine()) != null) {
+                text = text + line;
+                text = text + "\n";
+            }       
+        AbbrResolver abbrResolver = new AbbrResolver(text, true); 
+        TextManager textManager = new TextManager(patternFinder, abbrResolver);              
+            try {
+            List<Sentence> sentences = textManager.splitText(text, findAbbrPanel); 
+            log.info("List of sentence = " + sentences);
+            log.info("Count sentence = " + sentences.size());
+            List<String> result = new ArrayList<>(sentences.size());          
+            for (Sentence sentence : sentences) {
+                try {
+                    result.add(abbrResolver.resolveAcronyms(jMorfSdk, sentence));
+                }
+                catch(Exception e) {
+                    e.printStackTrace();
+                    result.add(sentence.toString());
+                }
+
+            }
+            String resultCommaSeparated = String.join(".", result); //выход
+            log.info("Result = " + resultCommaSeparated);  
+            System.out.println("Result = " + resultCommaSeparated);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

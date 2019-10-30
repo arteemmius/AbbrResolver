@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile=JMorfSdk-2.10.4.jar -DgroupId=lib -DartifactId=JMorfSdk -Dversion=2.10.4 -Dpackaging=jar

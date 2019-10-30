@@ -1,0 +1,4 @@
+classifier:
+  run: true
+rest:
+  path: /fullText
