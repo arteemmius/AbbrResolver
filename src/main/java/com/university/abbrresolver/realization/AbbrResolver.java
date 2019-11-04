@@ -467,7 +467,7 @@ public class AbbrResolver {
         try {
             response = restTemplate.postForEntity(urlTextAnalizer, entity, String.class);
             System.out.println("response.getBody() = " + response.getBody());
-            return getTopClassifierResult(getClassifierResult(response.getBody())).toLowerCase();
+            return getTopClassifierResult(getClassifierResult(response.getBody()));
         }
         catch (HttpStatusCodeException e) {
             System.out.println(e.getResponseBodyAsString());
