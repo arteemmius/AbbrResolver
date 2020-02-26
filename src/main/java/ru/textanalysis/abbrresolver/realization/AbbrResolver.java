@@ -2,13 +2,15 @@ package ru.textanalysis.abbrresolver.realization;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import java.util.*;
 import javax.swing.JPanel;
 import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
@@ -16,6 +18,10 @@ import ru.textanalysis.abbrresolver.beans.Descriptor;
 import ru.textanalysis.abbrresolver.beans.DescriptorType;
 import ru.textanalysis.abbrresolver.beans.Item;
 import ru.textanalysis.abbrresolver.beans.Sentence;
+import ru.textanalysis.abbrresolver.classifiermodel.ClassifierInputData;
+import ru.textanalysis.abbrresolver.classifiermodel.ClassifierOutputData;
+import ru.textanalysis.abbrresolver.realization.utils.DBManager;
+import ru.textanalysis.abbrresolver.realization.utils.Utils;
 import ru.textanalysis.tawt.jmorfsdk.*;
 import ru.textanalysis.tawt.ms.grammeme.MorfologyParameters;
 import ru.textanalysis.tawt.ms.internal.IOmoForm;
@@ -32,27 +38,33 @@ public class AbbrResolver {
     
     private static final Logger log = Logger.getLogger(AbbrResolver.class.getName());    
     private static String textPO = null;
-    private String text;
-    private boolean runTextAnalizer;
+    private static String text;
+    private static boolean runTextAnalizer;
     private static String urlTextAnalizer;
+    private static Boolean checkPO;
+    private static ArrayList<String> abbrList = new ArrayList<>();
     
-    public AbbrResolver(String text, boolean runTextAnalizer, String urlTextAnalizer) {
+    public AbbrResolver(String text, String PO, Boolean checkPO, boolean runTextAnalizer, String urlTextAnalizer) {
         this.text = text;
+        this.textPO = PO;
         this.runTextAnalizer = runTextAnalizer;
+        this.checkPO = checkPO;        
         AbbrResolver.urlTextAnalizer = urlTextAnalizer;
     }    
      
-    public void fillAbbrDescriptions(String text, DBManager dictionary, List<Descriptor> descriptors, JPanel findAbbrPanel) throws Exception {
+    public void fillAbbrDescriptions(String ptest, DBManager dictionary, List<Descriptor> descriptors, JPanel findAbbrPanel) throws Exception {
         log.info("Start fillAbbrDescriptions()");
-        if (textPO == null && runTextAnalizer)
+//        System.out.println("text = " + text);
+        String longWord;
+        if (textPO == null && runTextAnalizer && checkPO)
             textPO = runClassifier(text);
-        System.out.println("textPO = " + textPO);
-        System.out.println("runTextAnalizer = " + runTextAnalizer);
+        trace("textPO = " + textPO);
+        trace("runTextAnalizer = " + runTextAnalizer);
         for (Descriptor curDescriptor : descriptors) {
             List<String> longForms = null;
             if (textPO != null)
                 longForms = dictionary.findAbbrLongFormsWithMainWord(curDescriptor.getValue(), textPO);
-            if (longForms == null)
+            if (longForms == null || longForms.isEmpty())
                 longForms = dictionary.findAbbrLongForms(curDescriptor.getValue());
             
             List<String> properties = dictionary.findAbbrInfo(curDescriptor.getValue());
@@ -66,12 +78,15 @@ public class AbbrResolver {
                 }
             }
             
-
+            
             if (!longForms.isEmpty()) {
+                longWord = longForms.get(0);
                 curDescriptor.setDesc(longForms.get(0));           //пока берется первое попавшееся значение аббревиатуры
             }else{
+                longWord = curDescriptor.getValue();
                 curDescriptor.setDesc(curDescriptor.getValue());
             }
+            abbrList.add(curDescriptor.getValue() + " : " + longWord + " : " + textPO);
             Item item = new Item();
             if (!properties.isEmpty()) {
                 item.setWord(properties.get(0));
@@ -96,9 +111,13 @@ public class AbbrResolver {
         String copy = sentence.getContent(); //копируем все слова в переменную copy
         String[] acronymWords;
         log.info("copy= " + copy);  
-        
+        String text = "";
         for (int i = 0; i < descriptors.size(); i++) {
                 curDescriptor = descriptors.get(i);
+                trace("curDescriptor.getDesc() = " + curDescriptor.getDesc()); 
+                trace("curDescriptor.getValue() = " + curDescriptor.getValue());   
+                trace("curDescriptor.getType() = " + curDescriptor.getType());
+                trace("curDescriptor.getStartPos() = " + curDescriptor.getStartPos());
                 log.info("i-ый элемент= " + curDescriptor);      
                 log.info("i-ый элемент_start_pos= " + curDescriptor.getStartPos());                    
                 if (Objects.equals(curDescriptor.getType(), DescriptorType.SHORT_WORD) || Objects.equals(curDescriptor.getType(), DescriptorType.CUT_WORD)) {        
@@ -141,26 +160,39 @@ public class AbbrResolver {
                 } else{
                     //acronymWords[mainWordAcronymIndex];
                 }
-                
-                
+                for (int j = 0; j < acronymWords.length; j++) {
+                        trace("acronymWords[" + j + "]" + acronymWords[j]);
+                }                
+                trace("before mainWordAcronymIndex" + mainWordAcronymIndex);                
                 
                 if (acronymWords.length > 1) {
-                    adaptAcronymWords(acronymWords, mainWordAcronymIndex, jMorfSdk);
+                    try {
+                        adaptAcronymWords(acronymWords, mainWordAcronymIndex, jMorfSdk);
+                    }
+                    catch(Exception e) {
+                        trace("resolveAcronyms: can't acronymWords.length " + acronymWords.length);
+                        //e.printStackTrace();
+                    }
                 }
-
+                trace("after mainWordAcronymIndex" + mainWordAcronymIndex);
                 //restore acronym case
                 for (int j = 0; j < acronymWords.length; j++) {
                     if (capitalizeWords[j]) {
                         acronymWords[j] = Utils.capitalize(acronymWords[j]);
+                        trace("acronymWords[" + j + "]" + acronymWords[j]);
                     }
                 }
-
-                copy = copy.replace(curDescriptor.getValue(), Utils.concat(" ", Arrays.asList(acronymWords)));      //replaceAll заменить
-            } else{
+                trace("Utils.concat(\" \", Arrays.asList(acronymWords))" + Utils.concat(" ", Arrays.asList(acronymWords)));
+                trace("curDescriptor.getValue()" + curDescriptor.getValue());
+//                copy = copy.replace(curDescriptor.getValue(), Utils.concat(" ", Arrays.asList(acronymWords)));      //replaceAll заменить
                 
+                text = text + Utils.concat(" ", Arrays.asList(acronymWords)) + " ";
+            } else{
+                text = text + curDescriptor.getValue() + " ";
             }
         }
-        return copy;
+        text.replaceAll("  ", " ");
+        return text;
     }
 
     /**
@@ -291,7 +323,8 @@ public class AbbrResolver {
                 matchList = jMorfSdk.getDerivativeForm(acronymMainWord, mainWordCase);
             }
             catch(Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
+                System.out.println("error on " + acronymMainWord);  
                 return acronymMainWord;
             }            
             removeIf(matchList, MorfologyParameters.Numbers.class, mainWordNumbers, jMorfSdk);
@@ -301,15 +334,31 @@ public class AbbrResolver {
             //model 2:  глаг. (главн.) + сокр. (сущ.)
             if (preposition != null && !preposition.isEmpty()) {
                 long prepositionCase = getCaseByPreposition(preposition);
+                
+            try {                
                 List<String> matchList = jMorfSdk.getDerivativeForm(acronymMainWord, prepositionCase);
                 removeIf(matchList, MorfologyParameters.Numbers.class, mainWordNumbers, jMorfSdk);
                 return matchList.get(0);
+            }
+            catch(Exception e) {
+                //e.printStackTrace();
+                trace("error on " + acronymMainWord);   
+                return acronymMainWord;
+            } 
+            
             } else {
                 long transitivity = mainWordOmoForm.getTheMorfCharacteristics(MorfologyParameters.Transitivity.class);  //переходный
                 if (transitivity == MorfologyParameters.Transitivity.TRAN) {
+                try {                     
                     List<String> matchList = jMorfSdk.getDerivativeForm(acronymMainWord, MorfologyParameters.Case.ACCUSATIVE);  //винительный
                     removeIf(matchList, MorfologyParameters.Numbers.class, mainWordNumbers, jMorfSdk);
                     return matchList.get(0);
+                }
+                catch(Exception e) {
+                    //e.printStackTrace();
+                    trace("error on " + acronymMainWord);   
+                    return acronymMainWord;
+                }                 
                 } else if (transitivity == MorfologyParameters.Transitivity.INTR) {
                     //глагол непереходный. Что делать?
                 }
@@ -318,16 +367,24 @@ public class AbbrResolver {
             //model 3:  сущ. (главн.) + сокр. (сущ.)
             if (preposition != null && !preposition.isEmpty()) {
                 long prepositionCase = getCaseByPreposition(preposition);
-                List<String> matchList = jMorfSdk.getDerivativeForm(acronymMainWord, prepositionCase);
-                removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.SINGULAR, jMorfSdk);
-                return matchList.get(0);
+                try {                 
+                    List<String> matchList = jMorfSdk.getDerivativeForm(acronymMainWord, prepositionCase);
+                    removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.SINGULAR, jMorfSdk);
+                    return matchList.get(0);
+                }
+                catch(Exception e) {
+                    //e.printStackTrace();
+                    trace("error on " + acronymMainWord);   
+                    return acronymMainWord;
+                }                  
             } else {
                 List<String> matchList = null;
                 try {
                     matchList = jMorfSdk.getDerivativeForm(acronymMainWord, MorfologyParameters.Case.GENITIVE);
                 }
                 catch(Exception e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
+                    System.out.println("error on " + acronymMainWord);   
                     return acronymMainWord;
                 }
                 removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.SINGULAR, jMorfSdk);
@@ -346,20 +403,28 @@ public class AbbrResolver {
                     return acronymMainWord;
                 } 
                 if ((tailTen == 2 && tailHundred != 12) || (tailTen == 3 && tailHundred != 13) || (tailTen == 4 && tailHundred != 14)) {
-                    List<String> matchList = jMorfSdk.getDerivativeForm(acronymMainWord, MorfologyParameters.Case.GENITIVE);
-                    removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.SINGULAR, jMorfSdk);
-                    return matchList.get(0);
-
+                    try {                    
+                        List<String> matchList = jMorfSdk.getDerivativeForm(acronymMainWord, MorfologyParameters.Case.GENITIVE);
+                        removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.SINGULAR, jMorfSdk);
+                        return matchList.get(0);
+                    }
+                    catch(Exception e) {
+                        //e.printStackTrace();
+                        trace("error on " + acronymMainWord);   
+                        return acronymMainWord;
+                    }                       
                 }else {
                     List<String> matchList = null;
                     try {
+                        trace("acronymMainWord = " + acronymMainWord);
                         matchList = jMorfSdk.getDerivativeForm(acronymMainWord, MorfologyParameters.Case.GENITIVE);
+                        removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.PLURAL, jMorfSdk);
                     }
                     catch(Exception e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
+                        trace("error on " + acronymMainWord);                        
                         return acronymMainWord;
                     }                    
-                    removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.PLURAL, jMorfSdk);
                     
                     if (!matchList.isEmpty())
                         return matchList.get(0);
@@ -395,7 +460,14 @@ public class AbbrResolver {
                 }
                 if ((i != mainWordAcronymIndex) && (wordOmoForm.getTypeOfSpeech() != MorfologyParameters.TypeOfSpeech.PRETEXT) && (wordOmoForm.getTheMorfCharacteristics(MorfologyParameters.Case.IDENTIFIER) == MorfologyParameters.Case.NOMINATIVE)) {
                     String initialForm = jMorfSdk.getAllCharacteristicsOfForm(curWord).get(0).getInitialFormString();
-                    List<String> matchList = jMorfSdk.getDerivativeForm(initialForm, acronymCase);
+                    List<String> matchList  = null;
+                    try {
+                        matchList = jMorfSdk.getDerivativeForm(initialForm, acronymCase);
+                    }
+                    catch(Exception e) {
+                        e.printStackTrace();
+                        matchList.add(initialForm);
+                    }  
                     removeIf(matchList, MorfologyParameters.Numbers.class, lastNounNumbers, jMorfSdk);
                     removeIf(matchList, MorfologyParameters.Gender.class, lastNounGender, jMorfSdk);       //мужской - средний род (противоположном направлении, противоположном ключе)
                     if (matchList.size() > 0) {
@@ -436,47 +508,77 @@ public class AbbrResolver {
         }
     }
 
-    public static String runClassifier(String text) throws Exception {
-        System.out.println("text = " + text);
-        HashMap<String,  Double>  newmap = new HashMap<>();
-        InputData input = new InputData();
-        RestTemplate restTemplate = new RestTemplate();
-        byte[] array;
-        ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
-        array = text.getBytes();
-        outputBuffer.write(array);        
-        ResponseEntity<String> response;
+    public String runClassifier(String text) throws Exception {
+        trace("text = " + text);
+        ClassifierInputData input = new ClassifierInputData();      
         ArrayList<String> classifier = new ArrayList<>();
         classifier.add("MYLTI_CLASSIFIER");
         input.setClassifier(classifier);
         input.setModel("DOC2VEC");
-        HttpEntity<InputData> entity = new HttpEntity<InputData>(input);
+        byte[] array = text.getBytes();
+        ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
+        outputBuffer.write(array);
         String textStream = new String(outputBuffer.toByteArray(), "UTF-8");
-        input.setText(textStream);
+        input.setText(text);
+        input.setN(1); //запрашиваем топ - 1
         try {
-            response = restTemplate.postForEntity(urlTextAnalizer, entity, String.class);
-            System.out.println("response.getBody() = " + response.getBody());
-            return getTopClassifierResult(getClassifierResult(response.getBody()));
+            ClassifierOutputData[] res = sendREST_POST(input);
+            trace("sendREST_POST: result = " + res[0].getNewmap().get(0).getTopic());
+            return  res[0].getNewmap().get(0).getTopic();
         }
-        catch (HttpStatusCodeException e) {
-            System.out.println(e.getResponseBodyAsString());
+        catch (Exception e) {
+            e.printStackTrace();
             return null;
         }  
     }
-    
-    public static HashMap<String, Double> getClassifierResult(String json) throws Exception {
-        JSONParser parser = new JSONParser();
-        JSONObject json0 = (JSONObject) parser.parse(json);
-        String json1 = json0.get("MYLTI_CLASSIFIER").toString();
-        JSONObject json2 = (JSONObject) parser.parse(json1);
-        return json2;    
+/*
+    private static ClassifierOutputData[] sendREST_POST(ClassifierInputData obj, String uri) throws Exception {
+        System.out.println("sendREST_POST: start");
+        ObjectMapper mapper = new ObjectMapper();
+        String str = mapper.writeValueAsString(obj);	
+   
+        StringEntity strEntity = new StringEntity(str, "UTF-8");
+        strEntity.setContentType("application/json");
+        HttpPost post = new HttpPost(uri);
+        post.setEntity(strEntity);
+        //
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpResponse response = httpClient.execute(post);
+        try {
+            HttpEntity entity = response.getEntity();
+            if (response.getStatusLine().getStatusCode() != 200) {
+                System.out.println("sendREST_POST : error!");
+                return null;
+            }
+            InputStream is = entity.getContent();
+            ClassifierOutputData[] result = mapper.readValue(is, ClassifierOutputData[].class);
+            System.out.println("sendREST_POST: result = " + result[0].getNewmap().get(0).getTopic());
+            return result;
+        }
+
+        finally {
+            response.close();
+            httpClient.close();
+        }
     }     
+*/    
     
-    public static String getTopClassifierResult(HashMap<String,  Double>  map) {
-        Object[] list = map.entrySet().stream()
-            .sorted(HashMap.Entry.<String,  Double>comparingByValue().reversed()).toArray();
-            String str = list[0].toString();
-            return str.substring(0, list[0].toString().lastIndexOf("="));
+    private ClassifierOutputData[] sendREST_POST(ClassifierInputData input) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();     
+        ResponseEntity<ClassifierOutputData[]> response;
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.setContentType(MediaType.valueOf("application/json;charset=UTF-8"));   
+        
+        HttpEntity<ClassifierInputData> entity = new HttpEntity<>(input, requestHeaders);
+        try {
+            response = restTemplate.postForEntity(urlTextAnalizer, entity, ClassifierOutputData[].class);
+            trace("response.getBody() = " + response.getBody());
+            return response.getBody();
+        }
+        catch (HttpStatusCodeException e) {
+            trace(e.getResponseBodyAsString());
+            return null;
+        }         
     }    
     
     private List<String> getPossibleInfinitives(String str) {
@@ -536,4 +638,16 @@ public class AbbrResolver {
         }
         return Collections.emptyList();
     }
+
+    public String getTextPO() {
+        return textPO;
+    }
+
+    public ArrayList<String> getAbbrList() {
+        return abbrList;
+    }
+    
+    public void trace(String s) {
+//        System.out.println(s);
+    }    
 }

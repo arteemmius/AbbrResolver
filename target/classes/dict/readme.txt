@@ -1,1 +1,0 @@
-разместить файл БД в томкат /webapps/dict/abbreviation.db
