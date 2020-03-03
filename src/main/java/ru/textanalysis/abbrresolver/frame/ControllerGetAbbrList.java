@@ -34,6 +34,7 @@ public class ControllerGetAbbrList {
         AbbrListOutputData output = new AbbrListOutputData();
         AbbrResolver abbrResolver = new AbbrResolver(input.getText(), input.getPO(), input.isCheckPO(), runTextAnalizer, urlTextAnalizer);
         output.setAbbrList(abbrResolver.getAbbrList());
+        abbrResolver.clearAbbrList();
         return output;
     }    
 }

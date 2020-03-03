@@ -33,8 +33,10 @@ public class ControllerGetFullText {
         PatternFinder patternFinder = new PatternFinder();  
         FullTextOutputData output = new FullTextOutputData();
         AbbrResolver abbrResolver = new AbbrResolver(input.getText(), input.getPO(), input.isCheckPO(), runTextAnalizer, urlTextAnalizer);
-        if (input.isCheckGetAbbr())
+        if (input.isCheckGetAbbr()) {
             output.setAbbrList(abbrResolver.getAbbrList());
+            abbrResolver.clearAbbrList();
+        }
         TextManager textManager = new TextManager(patternFinder, abbrResolver);              
             try {
             //TODO: проверить как разбиваем на предложения, мб подключить либу?

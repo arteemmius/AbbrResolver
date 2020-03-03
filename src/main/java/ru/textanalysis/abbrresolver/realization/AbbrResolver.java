@@ -55,7 +55,6 @@ public class AbbrResolver {
     public void fillAbbrDescriptions(String ptest, DBManager dictionary, List<Descriptor> descriptors, JPanel findAbbrPanel) throws Exception {
         log.info("Start fillAbbrDescriptions()");
 //        System.out.println("text = " + text);
-        String longWord;
         if (textPO == null && runTextAnalizer && checkPO)
             textPO = runClassifier(text);
         trace("textPO = " + textPO);
@@ -80,20 +79,19 @@ public class AbbrResolver {
             
             
             if (!longForms.isEmpty()) {
-                longWord = longForms.get(0);
+                if(!abbrList.contains(curDescriptor.getValue() + " : " + longForms.get(0)))
+                    abbrList.add(curDescriptor.getValue() + " : " + longForms.get(0));
                 curDescriptor.setDesc(longForms.get(0));           //пока берется первое попавшееся значение аббревиатуры
             }else{
-                longWord = curDescriptor.getValue();
                 curDescriptor.setDesc(curDescriptor.getValue());
             }
-            abbrList.add(curDescriptor.getValue() + " : " + longWord + " : " + textPO);
             Item item = new Item();
             if (!properties.isEmpty()) {
                 item.setWord(properties.get(0));
                 item.setDefinition(properties.get(1));
                 item.setDescription("\t"); 
             }
-            System.out.println(item.getWord() + "\t" + item.getDefinition());
+            trace(item.getWord() + "\t" + item.getDefinition());
             //AbbrPanel abbrPanel = new AbbrPanel();
             //abbrPanel.addAbbrPanel(item.getWord(), item.getDefinition(), item.getDescription());
             //findAbbrPanel.add(abbrPanel);
@@ -324,7 +322,7 @@ public class AbbrResolver {
             }
             catch(Exception e) {
                 //e.printStackTrace();
-                System.out.println("error on " + acronymMainWord);  
+                trace("error on " + acronymMainWord);  
                 return acronymMainWord;
             }            
             removeIf(matchList, MorfologyParameters.Numbers.class, mainWordNumbers, jMorfSdk);
@@ -384,7 +382,7 @@ public class AbbrResolver {
                 }
                 catch(Exception e) {
                     //e.printStackTrace();
-                    System.out.println("error on " + acronymMainWord);   
+                    trace("error on " + acronymMainWord);   
                     return acronymMainWord;
                 }
                 removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.SINGULAR, jMorfSdk);
@@ -645,6 +643,10 @@ public class AbbrResolver {
 
     public ArrayList<String> getAbbrList() {
         return abbrList;
+    }
+    
+    public void clearAbbrList() {
+        abbrList.clear();
     }
     
     public void trace(String s) {

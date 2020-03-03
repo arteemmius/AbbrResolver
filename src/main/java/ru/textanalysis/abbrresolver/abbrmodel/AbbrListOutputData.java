@@ -20,7 +20,7 @@ public class AbbrListOutputData {
     }
 
     public void setAbbrList(ArrayList<String> abbrList) {
-        this.abbrList = abbrList;
+        this.abbrList = new ArrayList(abbrList);
     }
     
 }
