@@ -1,27 +1,26 @@
-package ru.textanalysis.abbrresolver.realization;
+package ru.textanalysis.abbrresolver.run;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import java.util.*;
 import javax.swing.JPanel;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-import ru.textanalysis.abbrresolver.beans.Descriptor;
-import ru.textanalysis.abbrresolver.beans.DescriptorType;
-import ru.textanalysis.abbrresolver.beans.Item;
-import ru.textanalysis.abbrresolver.beans.Sentence;
-import ru.textanalysis.abbrresolver.classifiermodel.ClassifierInputData;
-import ru.textanalysis.abbrresolver.classifiermodel.ClassifierOutputData;
-import ru.textanalysis.abbrresolver.realization.utils.DBManager;
-import ru.textanalysis.abbrresolver.realization.utils.Utils;
+import ru.textanalysis.abbrresolver.pojo.Descriptor;
+import ru.textanalysis.abbrresolver.pojo.DescriptorType;
+import ru.textanalysis.abbrresolver.pojo.Item;
+import ru.textanalysis.abbrresolver.pojo.Sentence;
+import ru.textanalysis.abbrresolver.model.classifier.ClassifierInputData;
+import ru.textanalysis.abbrresolver.model.classifier.ClassifierOutputData;
+import ru.textanalysis.abbrresolver.run.utils.DBManager;
+import ru.textanalysis.abbrresolver.run.utils.Utils;
 import ru.textanalysis.tawt.jmorfsdk.*;
 import ru.textanalysis.tawt.ms.grammeme.MorfologyParameters;
 import ru.textanalysis.tawt.ms.internal.IOmoForm;
@@ -36,7 +35,7 @@ public class AbbrResolver {
     private static final Set<String> ABLTIVE_PREPOSITIONS = new HashSet<>(Arrays.asList("за", "над", "под", "перед", "с"));
     private static final Set<String> PREPOSITIONA_PREPOSITIONS = new HashSet<>(Arrays.asList("в", "на", "о", "об", "обо", "при"));
     
-    private static final Logger log = Logger.getLogger(AbbrResolver.class.getName());    
+    private static final Logger log = LoggerFactory.getLogger(AbbrResolver.class.getName());    
     private static String textPO = null;
     private static String text;
     private static boolean runTextAnalizer;
@@ -53,12 +52,12 @@ public class AbbrResolver {
     }    
      
     public void fillAbbrDescriptions(String ptest, DBManager dictionary, List<Descriptor> descriptors, JPanel findAbbrPanel) throws Exception {
-        log.info("Start fillAbbrDescriptions()");
-//        System.out.println("text = " + text);
+        log.info("fillAbbrDescriptions: start fillAbbrDescriptions()");
+//        log.info("text = " + text);
         if (textPO == null && runTextAnalizer && checkPO)
             textPO = runClassifier(text);
-        trace("textPO = " + textPO);
-        trace("runTextAnalizer = " + runTextAnalizer);
+        log.info("fillAbbrDescriptions: textPO = " + textPO);
+        log.info("fillAbbrDescriptions: runTextAnalizer = " + runTextAnalizer);
         for (Descriptor curDescriptor : descriptors) {
             List<String> longForms = null;
             if (textPO != null)
@@ -81,7 +80,7 @@ public class AbbrResolver {
             if (!longForms.isEmpty()) {
                 if(!abbrList.contains(curDescriptor.getValue() + " : " + longForms.get(0)))
                     abbrList.add(curDescriptor.getValue() + " : " + longForms.get(0));
-                curDescriptor.setDesc(longForms.get(0));           //пока берется первое попавшееся значение аббревиатуры
+                curDescriptor.setDesc(longForms.get(0));
             }else{
                 curDescriptor.setDesc(curDescriptor.getValue());
             }
@@ -91,114 +90,120 @@ public class AbbrResolver {
                 item.setDefinition(properties.get(1));
                 item.setDescription("\t"); 
             }
-            trace(item.getWord() + "\t" + item.getDefinition());
+            log.info("fillAbbrDescriptions: " + item.getWord() + "\t" + item.getDefinition());
             //AbbrPanel abbrPanel = new AbbrPanel();
             //abbrPanel.addAbbrPanel(item.getWord(), item.getDefinition(), item.getDescription());
             //findAbbrPanel.add(abbrPanel);
             //findAbbrPanel.repaint();
             //findAbbrPanel.revalidate();
         }
-        log.info("fillAbbrDescriptions() success complete");           
+        log.info("fillAbbrDescriptions: success complete");           
     }
 
     public String resolveAcronyms(JMorfSdk jMorfSdk, Sentence sentence) throws Exception {
 
         List<Descriptor> descriptors = sentence.getDescriptors(); //разделение текста на слова и знаки препинания
         Descriptor curDescriptor;
-        log.info("descriptors= " + descriptors);        
+        log.info("resolveAcronyms: descriptors= " + descriptors);        
         String copy = sentence.getContent(); //копируем все слова в переменную copy
+        log.info("resolveAcronyms: copy= " + copy);  
         String[] acronymWords;
-        log.info("copy= " + copy);  
-        String text = "";
+        StringBuilder text = new StringBuilder("");
         for (int i = 0; i < descriptors.size(); i++) {
                 curDescriptor = descriptors.get(i);
-                trace("curDescriptor.getDesc() = " + curDescriptor.getDesc()); 
-                trace("curDescriptor.getValue() = " + curDescriptor.getValue());   
-                trace("curDescriptor.getType() = " + curDescriptor.getType());
-                trace("curDescriptor.getStartPos() = " + curDescriptor.getStartPos());
-                log.info("i-ый элемент= " + curDescriptor);      
-                log.info("i-ый элемент_start_pos= " + curDescriptor.getStartPos());                    
+                Descriptor curDescriptorNext = null;
+                if (i != descriptors.size() - 1)
+                    curDescriptorNext = descriptors.get(i + 1);
+                log.info("resolveAcronyms: curDescriptor.getDesc() = " + curDescriptor.getDesc()); 
+                log.info("resolveAcronyms: curDescriptor.getValue() = " + curDescriptor.getValue());   
+                log.info("resolveAcronyms: curDescriptor.getType() = " + curDescriptor.getType());
+                log.info("resolveAcronyms: curDescriptor.getStartPos() = " + curDescriptor.getStartPos());
+                log.info("resolveAcronyms: i-ый элемент= " + curDescriptor);      
+                log.info("resolveAcronyms: i-ый элемент_start_pos= " + curDescriptor.getStartPos());                    
                 if (Objects.equals(curDescriptor.getType(), DescriptorType.SHORT_WORD) || Objects.equals(curDescriptor.getType(), DescriptorType.CUT_WORD)) {        
                // if (Objects.equals(curDescriptor.getType(), DescriptorType.SHORT_WORD)) {        
-                log.info("curDescriptor.getType()= " + curDescriptor.getType());                  
-                log.info("Нашел сокращение= " + descriptors.get(i));                
+                log.info("resolveAcronyms: curDescriptor.getType()= " + curDescriptor.getType());                  
+                log.info("resolveAcronyms: find abbr= " + descriptors.get(i));                
                 if(Objects.equals(curDescriptor.getType(), DescriptorType.SHORT_WORD)) {
                     acronymWords = curDescriptor.getDesc().split(" "); //делим сокращение, состоящее из нескольких слов на части  
                 }
                 else {
                     acronymWords = curDescriptor.getDesc().split("");
                 }
-                log.info("curDescriptor.getDesc().split(\" \")= " + curDescriptor.getDesc().split(" ").toString());                                 
-                log.info("1acronymWords= " + String.join(",", acronymWords));               
+                log.info("resolveAcronyms: curDescriptor.getDesc().split(\" \")= " + curDescriptor.getDesc().split(" ").toString());                                 
+                log.info("resolveAcronyms: 1acronymWords= " + String.join(",", acronymWords));               
                 boolean[] capitalizeWords = new boolean[acronymWords.length];
 
                 //save acronym case
                 for (int j = 0; j < acronymWords.length; j++) {
                     String word = acronymWords[j];
-                    log.info("word= " + word);                     
+                    log.info("resolveAcronyms: word= " + word);                     
                     if (Character.isUpperCase(word.charAt(0))) {
                         acronymWords[j] = Utils.uncapitalize(word);
                         capitalizeWords[j] = true;
                     }
                 }
-                log.info("2acronymWords= " + String.join(",", acronymWords)); 
+                log.info("resolveAcronyms: 2acronymWords= " + String.join(",", acronymWords)); 
                 int mainWordAcronymIndex = getMainWordAcronymIndex(acronymWords, jMorfSdk); //getMainWordAcronymIndex - индекс главного слова внутри сокращения
-                log.info("mainWordAcronymIndex= " + mainWordAcronymIndex);
+                log.info("resolveAcronyms: mainWordAcronymIndex= " + mainWordAcronymIndex);
                 Integer collacationMainWordIndex = getMainWordIndex(descriptors, i, acronymWords[mainWordAcronymIndex], jMorfSdk);
-                log.info("collacationMainWordIndex= " + collacationMainWordIndex);                
+                log.info("resolveAcronyms: collacationMainWordIndex= " + collacationMainWordIndex);                
                 if (collacationMainWordIndex != null) {
                     String collMainWord = descriptors.get(collacationMainWordIndex).getValue();
-                    log.info("collMainWord= " + collMainWord);                    
+                    log.info("resolveAcronyms: collMainWord= " + collMainWord);                    
                     Integer prepositionIndex = getPrepositionIndex(descriptors, i, collacationMainWordIndex, jMorfSdk);
-                    log.info("prepositionIndex= " + prepositionIndex);                     
+                    log.info("resolveAcronyms: prepositionIndex= " + prepositionIndex);                     
                     String prepositionWord = prepositionIndex != null ? descriptors.get(prepositionIndex).getValue() : "";
-                    log.info("prepositionWord= " + prepositionWord);                     
+                    log.info("resolveAcronyms: prepositionWord= " + prepositionWord);                     
                     acronymWords[mainWordAcronymIndex] = getTrueAcronymForm(acronymWords[mainWordAcronymIndex], collMainWord, prepositionWord, jMorfSdk);
-                    log.info("acronymWords[mainWordAcronymIndex]= " + acronymWords[mainWordAcronymIndex]);  
+                    log.info("resolveAcronyms: acronymWords[mainWordAcronymIndex]= " + acronymWords[mainWordAcronymIndex]);  
                 } else{
                     //acronymWords[mainWordAcronymIndex];
                 }
                 for (int j = 0; j < acronymWords.length; j++) {
-                        trace("acronymWords[" + j + "]" + acronymWords[j]);
+                        log.info("resolveAcronyms: acronymWords[" + j + "]" + acronymWords[j]);
                 }                
-                trace("before mainWordAcronymIndex" + mainWordAcronymIndex);                
+                log.info("resolveAcronyms: before mainWordAcronymIndex" + mainWordAcronymIndex);                
                 
                 if (acronymWords.length > 1) {
                     try {
                         adaptAcronymWords(acronymWords, mainWordAcronymIndex, jMorfSdk);
                     }
                     catch(Exception e) {
-                        trace("resolveAcronyms: can't acronymWords.length " + acronymWords.length);
-                        //e.printStackTrace();
+                        log.info("resolveAcronyms: resolveAcronyms: can't acronymWords.length " + acronymWords.length);
+                        //e.printStacklog.info();
                     }
                 }
-                trace("after mainWordAcronymIndex" + mainWordAcronymIndex);
+                log.info("resolveAcronyms: after mainWordAcronymIndex" + mainWordAcronymIndex);
                 //restore acronym case
                 for (int j = 0; j < acronymWords.length; j++) {
                     if (capitalizeWords[j]) {
                         acronymWords[j] = Utils.capitalize(acronymWords[j]);
-                        trace("acronymWords[" + j + "]" + acronymWords[j]);
+                        log.info("resolveAcronyms: acronymWords[" + j + "]" + acronymWords[j]);
                     }
                 }
-                trace("Utils.concat(\" \", Arrays.asList(acronymWords))" + Utils.concat(" ", Arrays.asList(acronymWords)));
-                trace("curDescriptor.getValue()" + curDescriptor.getValue());
+                log.info("resolveAcronyms: Utils.concat(\" \", Arrays.asList(acronymWords)) = " + Utils.concat(" ", Arrays.asList(acronymWords)));
+                log.info("resolveAcronyms: curDescriptor.getValue()" + curDescriptor.getValue());
 //                copy = copy.replace(curDescriptor.getValue(), Utils.concat(" ", Arrays.asList(acronymWords)));      //replaceAll заменить
                 
-                text = text + Utils.concat(" ", Arrays.asList(acronymWords)) + " ";
+                text.append(Utils.concat(" ", Arrays.asList(acronymWords)));
+                text.append(" ");
             } else{
-                text = text + curDescriptor.getValue() + " ";
+                text.append(curDescriptor.getValue());
+                if (curDescriptorNext != null && curDescriptorNext.getType() != DescriptorType.PUNCTUATION_CHAR &&
+                        curDescriptorNext.getType() != DescriptorType.SENTENCE_END || curDescriptor.getType() == DescriptorType.SENTENCE_END)
+                    text.append(" ");
             }
         }
-        text.replaceAll("  ", " ");
-        return text;
+        return text.toString().replaceAll("  ", " ");
     }
 
     /**
      * Определяет главное слово в полной форме сокращения, возвращает индекс главного слова внутри сокращения
      */
     private int getMainWordAcronymIndex(String[] acronymWords, JMorfSdk jMorfSdk) throws Exception {
-        log.info("Start getMainWordAcronymIndex()");       
-        log.info("acronymWords.length= " + acronymWords.length);           
+        log.info("getMainWordAcronymIndex: start getMainWordAcronymIndex()");       
+        log.info("getMainWordAcronymIndex: acronymWords.length= " + acronymWords.length);           
         if (acronymWords.length > 1) {
             OmoFormList omoForms;        
             IOmoForm omoForm;        
@@ -206,12 +211,12 @@ public class AbbrResolver {
                 if (!(jMorfSdk.getAllCharacteristicsOfForm(acronymWords[i])).isEmpty()) {
                     omoForms = jMorfSdk.getAllCharacteristicsOfForm(acronymWords[i]);
                     omoForm = omoForms.get(0);
-                    log.info("omoForms= " + omoForms);  
-                    log.info("omoForm= " + omoForm);  
-                    log.info("omoForm.getTypeOfSpeech()= " + omoForm.getTypeOfSpeech());  
-                    log.info("MorfologyParameters.TypeOfSpeech.NOUN= " + MorfologyParameters.TypeOfSpeech.NOUN);  
-                    log.info("omoForm.getTheMorfCharacteristics(MorfologyParameters.Case.class= " + omoForm.getTheMorfCharacteristics(MorfologyParameters.Case.class));  
-                    log.info("MorfologyParameters.Case.NOMINATIVE= " + MorfologyParameters.Case.NOMINATIVE);                    
+                    log.info("getMainWordAcronymIndex: omoForms= " + omoForms);  
+                    log.info("getMainWordAcronymIndex: omoForm= " + omoForm);  
+                    log.info("getMainWordAcronymIndex: omoForm.getTypeOfSpeech()= " + omoForm.getTypeOfSpeech());  
+                    log.info("getMainWordAcronymIndex: MorfologyParameters.TypeOfSpeech.NOUN= " + MorfologyParameters.TypeOfSpeech.NOUN);  
+                    log.info("getMainWordAcronymIndex: omoForm.getTheMorfCharacteristics(MorfologyParameters.Case.class= " + omoForm.getTheMorfCharacteristics(MorfologyParameters.Case.class));  
+                    log.info("getMainWordAcronymIndex: MorfologyParameters.Case.NOMINATIVE= " + MorfologyParameters.Case.NOMINATIVE);                    
                     if (omoForm.getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.NOUN
                             && omoForm.getTheMorfCharacteristics(MorfologyParameters.Case.class) == MorfologyParameters.Case.NOMINATIVE) {  //именительный
                         return i;
@@ -226,14 +231,14 @@ public class AbbrResolver {
      * Ищет главное слово в предложении для сокращения
      */
     private Integer getMainWordIndex(List<Descriptor> descriptors, int acronymIndex, String acronym, JMorfSdk jMorfSdk) throws Exception {
-        log.info("Start getMainWordIndex()"); 
+        log.info("getMainWordIndex: start getMainWordIndex()"); 
         OmoFormList omoForms = jMorfSdk.getAllCharacteristicsOfForm(acronym);
-        log.info("omoForms= " + omoForms);
+        log.info("getMainWordIndex: omoForms= " + omoForms);
         if (omoForms.isEmpty()) {
             return null;
         }
         byte acronymTypeOfSpeech = omoForms.get(0).getTypeOfSpeech();
-        log.info("acronymTypeOfSpeech= " + acronymTypeOfSpeech);
+        log.info("getMainWordIndex: acronymTypeOfSpeech= " + acronymTypeOfSpeech);
         int wordIndex = acronymIndex;
 
         if (Arrays.asList(MorfologyParameters.TypeOfSpeech.ADJECTIVEFULL, MorfologyParameters.TypeOfSpeech.ADJECTIVESHORT, MorfologyParameters.TypeOfSpeech.NOUNPRONOUN,
@@ -241,41 +246,54 @@ public class AbbrResolver {
             //определяющее слово впереди
             while (++wordIndex < descriptors.size()) {
                 Descriptor curDescriptor = descriptors.get(wordIndex);
-                log.info("1curDescriptor= " + curDescriptor);  
-                if (Objects.equals(curDescriptor.getType(), DescriptorType.RUSSIAN_LEX) && !Character.isUpperCase(curDescriptor.getValue().charAt(0))) {
-                    IOmoForm wordOmoForm = null;
-                    if (!jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).isEmpty())
-                        wordOmoForm = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).get(0);
-                    else
-                        return null;
-                    if (wordOmoForm.getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.NOUN) {
-                        log.info("1wordIndex= " + wordIndex);                        
-                        return wordIndex;
+                log.info("getMainWordIndex: 1curDescriptor= " + curDescriptor); 
+                try {
+                    if (Objects.equals(curDescriptor.getType(), DescriptorType.RUSSIAN_LEX) && !Character.isUpperCase(curDescriptor.getValue().charAt(0))) {
+                        IOmoForm wordOmoForm = null;
+                        if (!jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).isEmpty())
+                            wordOmoForm = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).get(0);
+                        else
+                            return null;
+                        if (wordOmoForm.getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.NOUN) {
+                            log.info("getMainWordIndex: 1wordIndex= " + wordIndex);                        
+                            return wordIndex;
+                        }
                     }
+                }
+                catch (Exception e) {
+                    log.error("getMainWordIndex: error = " + e.getMessage());   
+                    return null;
                 }
             }
         } else if (acronymTypeOfSpeech == MorfologyParameters.TypeOfSpeech.NOUN) {
             //главное слово позади
             while (--wordIndex >= 0) {
                 Descriptor curDescriptor = descriptors.get(wordIndex);
-                log.info("2curDescriptor= " + curDescriptor);                  
-                if (Objects.equals(curDescriptor.getType(), DescriptorType.RUSSIAN_LEX) && !Character.isUpperCase(curDescriptor.getValue().charAt(0))) {
-                    IOmoForm wordOmoForm;
-                    if (!jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).isEmpty())
-                        wordOmoForm = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).get(0);
-                    else
-                        return null;
-                    if (wordOmoForm.getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.NOUN
-                            || VERB_TYPES.contains(wordOmoForm.getTypeOfSpeech())) {
-                        log.info("2wordIndex= " + wordIndex);                         
-                        return wordIndex;
+                log.info("getMainWordIndex: 2curDescriptor= " + curDescriptor);  
+                try {
+                    if (Objects.equals(curDescriptor.getType(), DescriptorType.RUSSIAN_LEX) && !Character.isUpperCase(curDescriptor.getValue().charAt(0))) {
+                        IOmoForm wordOmoForm;
+                        if (!jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).isEmpty())
+                            wordOmoForm = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).get(0);
+                        else
+                            return null;
+                        if (wordOmoForm.getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.NOUN
+                                || VERB_TYPES.contains(wordOmoForm.getTypeOfSpeech())) {
+                            log.info("getMainWordIndex: 2wordIndex= " + wordIndex);                         
+                            return wordIndex;
+                        }
                     }
-                } else if (Objects.equals(curDescriptor.getType(), DescriptorType.NUM_SEQ) && acronymIndex - wordIndex < 3) {
-                    OmoFormList omoFormList = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue());
-                    if (!omoFormList.isEmpty() && omoFormList.get(0).getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.NUMERAL) {
-                        log.info("3wordIndex= " + wordIndex);                         
-                        return wordIndex;
-                    }
+                    else if (Objects.equals(curDescriptor.getType(), DescriptorType.NUM_SEQ) && acronymIndex - wordIndex < 3) {
+                        OmoFormList omoFormList = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue());
+                        if (!omoFormList.isEmpty() && omoFormList.get(0).getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.NUMERAL) {
+                            log.info("getMainWordIndex: 3wordIndex= " + wordIndex);                         
+                            return wordIndex;
+                        }
+                    }                    
+                }
+                catch (Exception e) {
+                    log.error("getMainWordIndex: error = " + e.getMessage());   
+                    return null;                    
                 }
             }
         }
@@ -288,12 +306,18 @@ public class AbbrResolver {
         int endIndex = startIndex + Math.abs(delta);
         for (int wordIndex = startIndex + 1; wordIndex < endIndex; wordIndex++) {
             Descriptor curDescriptor = descriptors.get(wordIndex);
-            if (Objects.equals(curDescriptor.getType(), DescriptorType.RUSSIAN_LEX) && !Character.isUpperCase(curDescriptor.getValue().charAt(0))) {
-                IOmoForm wordOmoForm = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).get(0);
-                if (wordOmoForm.getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.PRETEXT) { 
-                    return wordIndex;
+            try {
+                if (Objects.equals(curDescriptor.getType(), DescriptorType.RUSSIAN_LEX) && !Character.isUpperCase(curDescriptor.getValue().charAt(0))) {
+                    IOmoForm wordOmoForm = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).get(0);
+                    if (wordOmoForm.getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.PRETEXT) { 
+                        return wordIndex;
+                    }
                 }
             }
+            catch (Exception e) {
+                log.error("getMainWordIndex: error = " + e.getMessage());   
+                return null;                    
+            }            
         }
         return null;
     }
@@ -321,8 +345,8 @@ public class AbbrResolver {
                 matchList = jMorfSdk.getDerivativeForm(acronymMainWord, mainWordCase);
             }
             catch(Exception e) {
-                //e.printStackTrace();
-                trace("error on " + acronymMainWord);  
+                //e.printStacklog.info();
+                log.error("getTrueAcronymForm: error on " + acronymMainWord);       
                 return acronymMainWord;
             }            
             removeIf(matchList, MorfologyParameters.Numbers.class, mainWordNumbers, jMorfSdk);
@@ -339,8 +363,8 @@ public class AbbrResolver {
                 return matchList.get(0);
             }
             catch(Exception e) {
-                //e.printStackTrace();
-                trace("error on " + acronymMainWord);   
+                //e.printStacklog.info();
+                log.error("getTrueAcronymForm: error on " + acronymMainWord);        
                 return acronymMainWord;
             } 
             
@@ -353,8 +377,8 @@ public class AbbrResolver {
                     return matchList.get(0);
                 }
                 catch(Exception e) {
-                    //e.printStackTrace();
-                    trace("error on " + acronymMainWord);   
+                    //e.printStacklog.info();
+                    log.error("getTrueAcronymForm: error on " + acronymMainWord);        
                     return acronymMainWord;
                 }                 
                 } else if (transitivity == MorfologyParameters.Transitivity.INTR) {
@@ -371,8 +395,8 @@ public class AbbrResolver {
                     return matchList.get(0);
                 }
                 catch(Exception e) {
-                    //e.printStackTrace();
-                    trace("error on " + acronymMainWord);   
+                    //e.printStacklog.info();
+                    log.error("getTrueAcronymForm: error on " + acronymMainWord);        
                     return acronymMainWord;
                 }                  
             } else {
@@ -381,8 +405,8 @@ public class AbbrResolver {
                     matchList = jMorfSdk.getDerivativeForm(acronymMainWord, MorfologyParameters.Case.GENITIVE);
                 }
                 catch(Exception e) {
-                    //e.printStackTrace();
-                    trace("error on " + acronymMainWord);   
+                    //e.printStacklog.info();
+                    log.error("getTrueAcronymForm: error on " + acronymMainWord);   
                     return acronymMainWord;
                 }
                 removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.SINGULAR, jMorfSdk);
@@ -407,20 +431,20 @@ public class AbbrResolver {
                         return matchList.get(0);
                     }
                     catch(Exception e) {
-                        //e.printStackTrace();
-                        trace("error on " + acronymMainWord);   
+                        //e.printStacklog.info();
+                        log.error("getTrueAcronymForm: error on " + acronymMainWord);    
                         return acronymMainWord;
                     }                       
                 }else {
                     List<String> matchList = null;
                     try {
-                        trace("acronymMainWord = " + acronymMainWord);
+                        log.info("acronymMainWord = " + acronymMainWord);
                         matchList = jMorfSdk.getDerivativeForm(acronymMainWord, MorfologyParameters.Case.GENITIVE);
                         removeIf(matchList, MorfologyParameters.Numbers.class, MorfologyParameters.Numbers.PLURAL, jMorfSdk);
                     }
                     catch(Exception e) {
-                        //e.printStackTrace();
-                        trace("error on " + acronymMainWord);                        
+                        //e.printStacklog.info();
+                        log.error("getTrueAcronymForm: error on " + acronymMainWord);                        
                         return acronymMainWord;
                     }                    
                     
@@ -463,7 +487,7 @@ public class AbbrResolver {
                         matchList = jMorfSdk.getDerivativeForm(initialForm, acronymCase);
                     }
                     catch(Exception e) {
-                        e.printStackTrace();
+                        log.error("adaptAcronymWords: catch exception!" + e.getMessage());
                         matchList.add(initialForm);
                     }  
                     removeIf(matchList, MorfologyParameters.Numbers.class, lastNounNumbers, jMorfSdk);
@@ -483,7 +507,7 @@ public class AbbrResolver {
                     OmoFormList omoForms = jMorfSdk.getAllCharacteristicsOfForm(s);
                     return omoForms.isEmpty() || omoForms.get(0).getTheMorfCharacteristics(morfologyParameterClass) != param;
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("removeIf: catch exception!" + e.getMessage());
                 }
                 return false;
             });
@@ -507,7 +531,7 @@ public class AbbrResolver {
     }
 
     public String runClassifier(String text) throws Exception {
-        trace("text = " + text);
+        log.info("text = " + text);
         ClassifierInputData input = new ClassifierInputData();      
         ArrayList<String> classifier = new ArrayList<>();
         classifier.add("MYLTI_CLASSIFIER");
@@ -521,17 +545,17 @@ public class AbbrResolver {
         input.setN(1); //запрашиваем топ - 1
         try {
             ClassifierOutputData[] res = sendREST_POST(input);
-            trace("sendREST_POST: result = " + res[0].getNewmap().get(0).getTopic());
+            log.info("sendREST_POST: result = " + res[0].getNewmap().get(0).getTopic());
             return  res[0].getNewmap().get(0).getTopic();
         }
         catch (Exception e) {
-            e.printStackTrace();
+                    log.error("runClassifier: catch exception!" + e.getMessage());
             return null;
         }  
     }
 /*
     private static ClassifierOutputData[] sendREST_POST(ClassifierInputData obj, String uri) throws Exception {
-        System.out.println("sendREST_POST: start");
+        log.info("sendREST_POST: start");
         ObjectMapper mapper = new ObjectMapper();
         String str = mapper.writeValueAsString(obj);	
    
@@ -545,12 +569,12 @@ public class AbbrResolver {
         try {
             HttpEntity entity = response.getEntity();
             if (response.getStatusLine().getStatusCode() != 200) {
-                System.out.println("sendREST_POST : error!");
+                log.info("sendREST_POST : error!");
                 return null;
             }
             InputStream is = entity.getContent();
             ClassifierOutputData[] result = mapper.readValue(is, ClassifierOutputData[].class);
-            System.out.println("sendREST_POST: result = " + result[0].getNewmap().get(0).getTopic());
+            log.info("sendREST_POST: result = " + result[0].getNewmap().get(0).getTopic());
             return result;
         }
 
@@ -570,11 +594,11 @@ public class AbbrResolver {
         HttpEntity<ClassifierInputData> entity = new HttpEntity<>(input, requestHeaders);
         try {
             response = restTemplate.postForEntity(urlTextAnalizer, entity, ClassifierOutputData[].class);
-            trace("response.getBody() = " + response.getBody());
+            log.info("response.getBody() = " + response.getBody());
             return response.getBody();
         }
         catch (HttpStatusCodeException e) {
-            trace(e.getResponseBodyAsString());
+            log.info(e.getResponseBodyAsString());
             return null;
         }         
     }    
@@ -648,8 +672,9 @@ public class AbbrResolver {
     public void clearAbbrList() {
         abbrList.clear();
     }
-    
+/*    
     public void trace(String s) {
-//        System.out.println(s);
+        log.info(s);
     }    
+*/	
 }

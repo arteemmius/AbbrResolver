@@ -2,26 +2,27 @@ package ru.textanalysis.abbrresolver.frame;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import ru.textanalysis.abbrresolver.abbrmodel.FullTextInputData;
-import ru.textanalysis.abbrresolver.abbrmodel.FullTextOutputData;
-import ru.textanalysis.abbrresolver.beans.Sentence;
-import ru.textanalysis.abbrresolver.realization.AbbrResolver;
-import ru.textanalysis.abbrresolver.realization.utils.PatternFinder;
-import ru.textanalysis.abbrresolver.realization.utils.TextManager;
+import ru.textanalysis.abbrresolver.model.abbr.FullTextInputData;
+import ru.textanalysis.abbrresolver.model.abbr.FullTextOutputData;
+import ru.textanalysis.abbrresolver.pojo.Sentence;
+import ru.textanalysis.abbrresolver.run.AbbrResolver;
+import ru.textanalysis.abbrresolver.run.utils.PatternFinder;
+import ru.textanalysis.abbrresolver.run.utils.TextManager;
 import ru.textanalysis.tawt.jmorfsdk.JMorfSdk;
 import ru.textanalysis.tawt.jmorfsdk.loader.*;
 
 @Component       
 @RestController
 public class ControllerGetFullText {  
-    private static final Logger log = Logger.getLogger(ControllerGetFullText.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(ControllerGetFullText.class.getName());
     public final static JMorfSdk jMorfSdk =  JMorfSdkFactory.loadFullLibrary(); 
     @Value("${classifier.run}")
     private boolean runTextAnalizer;
@@ -42,6 +43,10 @@ public class ControllerGetFullText {
             //TODO: проверить как разбиваем на предложения, мб подключить либу?
             //убрать JPanel()
             List<Sentence> sentences = textManager.splitText(input.getText(), new javax.swing.JPanel()); 
+            for (int i = 0; i < sentences.size(); i++) {
+                log.info(i + " sentence is " + sentences.get(i));
+                log.info("\n");
+            }
             log.info("List of sentence = " + sentences);
             log.info("Count sentence = " + sentences.size());
             List<String> result = new ArrayList<>(sentences.size());
@@ -60,9 +65,8 @@ public class ControllerGetFullText {
                 }
 
             }
-            String resultCommaSeparated = String.join(".", result); //выход
+            String resultCommaSeparated = String.join("", result); //выход
             log.info("Result = " + resultCommaSeparated);  
-            System.out.println("Result = " + resultCommaSeparated);
             output.setText(resultCommaSeparated);
             output.setTextPO(abbrResolver.getTextPO());            
             return output;

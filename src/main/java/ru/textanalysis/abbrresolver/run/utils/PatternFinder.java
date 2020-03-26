@@ -1,21 +1,22 @@
-package ru.textanalysis.abbrresolver.realization.utils;
+package ru.textanalysis.abbrresolver.run.utils;
 
-import ru.textanalysis.abbrresolver.beans.Descriptor;
-import ru.textanalysis.abbrresolver.beans.DescriptorType;
+import ru.textanalysis.abbrresolver.pojo.Descriptor;
+import ru.textanalysis.abbrresolver.pojo.DescriptorType;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PatternFinder {
 
-    private static final Map<Integer, List<Pattern>> PATTERNS = new HashMap<>();
+    public static final Map<Integer, List<Pattern>> PATTERNS = new HashMap<>();
     private static final Set<Integer> DESCRIPTORS_WITH_DOT_IN_END = new HashSet<>(Arrays.asList(DescriptorType.FIO, DescriptorType.SHORT_WORD, DescriptorType.CUT_WORD));
     //private static final Set<Integer> DESCRIPTORS_WITH_DOT_IN_END = new HashSet<>(Arrays.asList(DescriptorType.FIO, DescriptorType.SHORT_WORD));
     
-    private static final Logger log = Logger.getLogger(PatternFinder.class.getName());    
+    private static final Logger log = LoggerFactory.getLogger(PatternFinder.class.getName());    
 
     static {
         PATTERNS.put(DescriptorType.FIO, Arrays.asList(

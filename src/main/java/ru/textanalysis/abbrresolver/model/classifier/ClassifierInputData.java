@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package ru.textanalysis.abbrresolver.classifiermodel;
+package ru.textanalysis.abbrresolver.model.classifier;
 
 import java.util.ArrayList;
 

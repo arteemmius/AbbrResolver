@@ -3,23 +3,25 @@ package ru.textanalysis.abbrresolver.utils;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import ru.textanalysis.abbrresolver.beans.Item;
-import ru.textanalysis.abbrresolver.realization.utils.DBManager;
-import ru.textanalysis.abbrresolver.realization.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.textanalysis.abbrresolver.pojo.Item;
+import ru.textanalysis.abbrresolver.run.utils.DBManager;
+import ru.textanalysis.abbrresolver.run.utils.Utils;
 
 public class ImportTxt {
 
     private static final String DELIMITER = ";";
-
+    private static final Logger log = LoggerFactory.getLogger(ImportTxt.class.getName()); 
     public void doImport(InputStream is, String filePath) throws Exception {
         DBManager dbManager = DBManager.getInstance();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.forName("utf-8")))) {
-            System.out.println("Начат импорт файла '" + filePath + "'.");
+            log.info("Начат импорт файла '" + filePath + "'.");
             Item item;
             while ((item = readItem(reader)) != null) {
                 dbManager.addItem(item);
             }
-            System.out.println("Импорт завершен.");
+            log.info("Импорт завершен.");
         } catch (FileNotFoundException e) {
             throw new RuntimeException("File not found!", e);
         }

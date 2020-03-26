@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import ru.textanalysis.abbrresolver.abbrmodel.AbbrListInputData;
-import ru.textanalysis.abbrresolver.abbrmodel.AbbrListOutputData;
-import ru.textanalysis.abbrresolver.realization.AbbrResolver;
+import ru.textanalysis.abbrresolver.model.abbr.AbbrListInputData;
+import ru.textanalysis.abbrresolver.model.abbr.AbbrListOutputData;
+import ru.textanalysis.abbrresolver.run.AbbrResolver;
 
 /**
  *

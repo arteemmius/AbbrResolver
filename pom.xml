@@ -26,12 +26,17 @@
       <dependency>
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-web</artifactId>
-      </dependency>
+      </dependency>    
       <dependency>
          <groupId>com.googlecode.json-simple</groupId>
          <artifactId>json-simple</artifactId>
          <version>1.1</version>
       </dependency>
+    <dependency>
+        <groupId>com.ibm.icu</groupId>
+        <artifactId>icu4j</artifactId>
+        <version>66.1</version>
+    </dependency>   
       <dependency>
          <groupId>org.xerial</groupId>
          <artifactId>sqlite-jdbc</artifactId>
@@ -42,12 +47,7 @@
          <artifactId>servlet-api</artifactId>
          <version>2.3</version>
          <scope>provided</scope>
-      </dependency>
-      <dependency>
-         <groupId>log4j</groupId>
-         <artifactId>log4j</artifactId>
-         <version>1.2.17</version>
-      </dependency>
+      </dependency>  
       <dependency>
          <groupId>org.apache.commons</groupId>
          <artifactId>commons-lang3</artifactId>
@@ -169,7 +169,7 @@
           <snapshots>
             <enabled>false</enabled>
           </snapshots>
-        </repository>     
+        </repository>       
    </repositories>
     <pluginRepositories>
         <pluginRepository>

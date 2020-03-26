@@ -3,8 +3,8 @@ package ru.textanalysis.abbrresolver.utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import ru.textanalysis.abbrresolver.beans.Item;
-import ru.textanalysis.abbrresolver.realization.utils.Utils;
+import ru.textanalysis.abbrresolver.pojo.Item;
+import ru.textanalysis.abbrresolver.run.utils.Utils;
 
 public abstract class Importer {
 

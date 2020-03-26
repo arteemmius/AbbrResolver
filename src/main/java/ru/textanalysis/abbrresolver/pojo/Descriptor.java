@@ -1,4 +1,4 @@
-package ru.textanalysis.abbrresolver.beans;
+package ru.textanalysis.abbrresolver.pojo;
 
 public class Descriptor {
 

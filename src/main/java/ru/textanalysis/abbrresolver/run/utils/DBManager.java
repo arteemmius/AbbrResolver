@@ -1,6 +1,6 @@
-package ru.textanalysis.abbrresolver.realization.utils;
+package ru.textanalysis.abbrresolver.run.utils;
 
-import ru.textanalysis.abbrresolver.beans.Item;
+import ru.textanalysis.abbrresolver.pojo.Item;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -10,18 +10,22 @@ import java.nio.charset.Charset;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.textanalysis.abbrresolver.pojo.Sentence;
 
 public class DBManager implements Closeable {
 
     private static DBManager singleInstance;
     private static Connection conn;
+    private static final Logger log = LoggerFactory.getLogger(DBManager.class.getName()); 
     
     private DBManager() {
         try {
             Class.forName("org.sqlite.JDBC").newInstance();
             conn = DriverManager.getConnection("jdbc:sqlite:" + "../webapps/dict/abbreviation.db");
         } catch (Exception e) {
-            System.out.println("Ошибка подключения: " + e.getMessage());
+            log.info("Ошибка подключения: " + e.getMessage());
         }
     }
 
@@ -39,7 +43,7 @@ public class DBManager implements Closeable {
                 conn = DriverManager.getConnection("jdbc:sqlite:" + "../webapps/dict/abbreviation.db");
             }
         } catch (Exception e) {
-            System.out.println("Ошибка подключения: " + e.getMessage());
+            log.info("Ошибка подключения: " + e.getMessage());
         }
         return conn;
     }
@@ -52,7 +56,7 @@ public class DBManager implements Closeable {
             }
             singleInstance = null;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
@@ -89,7 +93,7 @@ public class DBManager implements Closeable {
             stmt.setString(3, item.getDescription() != null ? item.getDescription().trim() : item.getDescription());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 

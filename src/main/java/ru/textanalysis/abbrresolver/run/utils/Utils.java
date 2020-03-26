@@ -1,4 +1,4 @@
-package ru.textanalysis.abbrresolver.realization.utils;
+package ru.textanalysis.abbrresolver.run.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;

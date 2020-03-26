@@ -1,8 +1,9 @@
-package ru.textanalysis.abbrresolver.beans;
+package ru.textanalysis.abbrresolver.pojo;
 
-import ru.textanalysis.abbrresolver.beans.Descriptor;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Sentence {
 
@@ -10,7 +11,8 @@ public class Sentence {
     private int startPos;
     private int length;
     private String content;
-
+    
+    private static final Logger log = LoggerFactory.getLogger(Sentence.class.getName());  
     private List<Descriptor> descriptors = new ArrayList<>();
 
     public int getIndexInText() {
@@ -59,11 +61,11 @@ public class Sentence {
     }
 
     public void print() {
-        System.out.println(content);
+        log.info(content);
         StringBuilder sb = new StringBuilder();
         for (Descriptor descriptor : descriptors) {
             sb.append(" ").append(descriptor.toString());
         }
-        System.out.println("Descriptors: " + sb.toString());
+        log.info("Descriptors: " + sb.toString());
     }
 }
