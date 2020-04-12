@@ -61,7 +61,7 @@ public class TextManager {
             fillShortWords(temp.get(i).getContent(), Utils.filter(allPatternDescriptors, descriptor -> Objects.equals(descriptor.getType(), DescriptorType.CUT_WORD)), findAbbrPanel);
 
             //allPatternDescriptors - сокращения, все остальное далее рассматриваем как обычные слова
-            String words[] = temp.get(i).getContent().split(" ");
+            String words[] = temp.get(i).getContent().replaceAll("\\s+", " ").split(" ");
             List<Descriptor> sentenceDesc = new ArrayList<>();
             int index = 0;
             log.info("wordssize() = " + words.length);
@@ -180,6 +180,8 @@ public class TextManager {
         Matcher m0 = pattern0.matcher(s);
         if (m0.matches()) {
             Descriptor desc0 = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m0.group(1).length(), m0.group(1));
+            //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
+            desc0 = setTypeAndDesc(desc0, "[A-ЯЁA-Z]{2,}");              
             Descriptor desc1 = new Descriptor(DescriptorType.SENTENCE_END, j + 1, m0.group(2).length(), m0.group(2));
             sentenceDescm.add(desc0);
             sentenceDescm.add(desc1);
@@ -191,6 +193,8 @@ public class TextManager {
         if (m1.matches()) {
             Descriptor desc0 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j, m1.group(1).length(), m1.group(1));
             Descriptor desc1 = new Descriptor(DescriptorType.RUSSIAN_LEX, j + 1, m1.group(2).length(), m1.group(2));
+            //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
+            desc1 = setTypeAndDesc(desc1, "[A-ЯЁA-Z]{2,}");               
             Descriptor desc2 = new Descriptor(DescriptorType.SENTENCE_END, j + 2, m1.group(3).length(), m1.group(3));
             sentenceDescm.add(desc0);
             sentenceDescm.add(desc1);
@@ -198,21 +202,25 @@ public class TextManager {
             return true;
         }        
         //поймали не последнее слово в предложении со знаком препинания сзади
-        Pattern pattern2 = Pattern.compile("([А-Яа-я]+)(,|:|\"|-)");  
+        Pattern pattern2 = Pattern.compile("([А-Яа-я]+)(;|,|:|\"|-)");  
         Matcher m2 = pattern2.matcher(s);
         if (m2.matches()) {
             Descriptor desc0 = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m2.group(1).length(), m2.group(1));
+            //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
+            desc0 = setTypeAndDesc(desc0, "[A-ЯЁA-Z]{2,}");            
             Descriptor desc1 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j + 1, m2.group(2).length(), m2.group(2));
             sentenceDescm.add(desc0);
             sentenceDescm.add(desc1);
             return true;
         }          
         //поймали не последнее слово в предложении со знаком препинания с обеих сторон
-        Pattern pattern4 = Pattern.compile("([-\"])([А-Яа-я]+)(,|:|\"|-)");       
+        Pattern pattern4 = Pattern.compile("([-\"])([А-Яа-я]+)(;|,|:|\"|-)");       
         Matcher m3 = pattern4.matcher(s);        
         if (m3.matches()) {
             Descriptor desc0 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j, m3.group(1).length(), m3.group(1));
             Descriptor desc1 = new Descriptor(DescriptorType.RUSSIAN_LEX, j + 1, m3.group(2).length(), m3.group(2));
+            //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
+            desc1 = setTypeAndDesc(desc1, "[A-ЯЁA-Z]{2,}");
             Descriptor desc2 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j + 2, m3.group(3).length(), m3.group(3));
             sentenceDescm.add(desc0);
             sentenceDescm.add(desc1);
@@ -220,7 +228,7 @@ public class TextManager {
             return true;            
         }   
         //пришел знак препинания
-        Pattern pattern5 = Pattern.compile("[,\\.\\-\\?\\!\\:\"]");       
+        Pattern pattern5 = Pattern.compile("[;,\\.\\-\\?\\!\\:\"]");       
         Matcher m4 = pattern5.matcher(s);        
         if (m4.matches()) {
             Descriptor desc0 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j, m4.group().length(), m4.group());
@@ -228,6 +236,32 @@ public class TextManager {
             return true;            
         }
         return false;
+    }
+    
+    //[SAM:K412] для вычисления типа слова в частных случаях функции checkWordType
+    private Descriptor setTypeAndDesc(Descriptor abbr, String regExp) throws Exception {
+        boolean check = checkRegExp(abbr.getValue(), regExp);
+        String textPO = abbrResolver.getTextPO();
+        List<String> longForm = null;
+        if (check) {
+            if (textPO != null)
+                longForm = dictionary.findAbbrLongFormsWithMainWord(abbr.getValue(), textPO);
+            if (longForm == null || longForm.isEmpty())
+                longForm = dictionary.findAbbrLongForms(abbr.getValue());
+            if (longForm != null && longForm.size() > 0) {
+                abbr.setType(DescriptorType.SHORT_WORD);
+                abbr.setDesc(longForm.get(0));
+            }
+        }
+
+        return abbr;
+    }
+        
+    //[SAM:K412] для проверки аббревиатур при наличии рядом с ними знаков препинания
+    private boolean checkRegExp(String text, String regExp) {
+        Pattern pattern = Pattern.compile(regExp);       
+        Matcher m = pattern.matcher(text);     
+        return m.matches(); 
     }
     
     private void fillShortWords(String text, List<Descriptor> supposedShortWords, JPanel findAbbrPanel) throws Exception {
