@@ -78,8 +78,10 @@ public class AbbrResolver {
             
             
             if (!longForms.isEmpty()) {
+/*                
                 if(!abbrList.contains(curDescriptor.getValue() + " : " + longForms.get(0)))
                     abbrList.add(curDescriptor.getValue() + " : " + longForms.get(0));
+*/                
                 curDescriptor.setDesc(longForms.get(0));
             }else{
                 curDescriptor.setDesc(curDescriptor.getValue());
