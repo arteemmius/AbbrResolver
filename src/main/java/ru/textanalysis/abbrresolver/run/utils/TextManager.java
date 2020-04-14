@@ -196,6 +196,32 @@ public class TextManager {
                 return true;
             }
         }         
+        //[SAM:K414] тестирование показало сокращения часто пишутся после первого употребления полной формы в скобках
+        Pattern patternP = Pattern.compile("(.*[\\(])([A-ЯЁA-Z]{2,}|\\b[а-я]+\\.)([\\)].*)");
+        Matcher matchP = patternP.matcher(s);
+        if (matchP.matches()) {
+            //первая скобка
+            Descriptor desc0 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j, matchP.group(1).length(), matchP.group(1));
+            //вторая скобка
+            Descriptor desc2 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j + 2, matchP.group(3).length(), matchP.group(3));
+            //содержимое скобок
+            Descriptor desc1 = new Descriptor(DescriptorType.RUSSIAN_LEX, j + 1, matchP.group(2).length(), matchP.group(2));
+            if (!caseNextWord) {
+                desc1 = setTypeAndDesc(desc1, "\\b[а-я]+\\.", allPatternDescriptors);
+                if (desc1.getType() != DescriptorType.RUSSIAN_LEX) {
+                    sentenceDescm.add(desc0);
+                    sentenceDescm.add(desc1);
+                    sentenceDescm.add(desc2);
+                    return true;
+                }
+            }
+            //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
+            desc1 = setTypeAndDesc(desc1, "[A-ЯЁA-Z]{2,}", allPatternDescriptors);
+            sentenceDescm.add(desc0);
+            sentenceDescm.add(desc1);
+            sentenceDescm.add(desc2);
+            return true;
+        }
         //поймали последнее слово в предложении
         Pattern pattern0 = Pattern.compile("([А-Яа-я]+)(\\.{1,3}|!|\\?)");
         Matcher m0 = pattern0.matcher(s);

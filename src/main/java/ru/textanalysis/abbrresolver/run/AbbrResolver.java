@@ -127,7 +127,7 @@ public class AbbrResolver {
                 log.info("resolveAcronyms: curDescriptor.getType()= " + curDescriptor.getType());                  
                 log.info("resolveAcronyms: find abbr= " + descriptors.get(i));                
                 if(Objects.equals(curDescriptor.getType(), DescriptorType.SHORT_WORD)) {
-                    acronymWords = curDescriptor.getDesc().split(" "); //делим сокращение, состоящее из нескольких слов на части  
+                    acronymWords = curDescriptor.getDesc().replaceAll("\\s+", " ").split(" "); //делим сокращение, состоящее из нескольких слов на части  
                 }
                 else {
                     acronymWords = curDescriptor.getDesc().split("");
@@ -139,6 +139,9 @@ public class AbbrResolver {
                 //save acronym case
                 for (int j = 0; j < acronymWords.length; j++) {
                     String word = acronymWords[j];
+                    //[SAM:K414] в БД сокращения лежат с лишними пробелами, надо учитывать
+                    if ("".equals(word) || " ".equals(word)) continue;
+                    
                     log.info("resolveAcronyms: word= " + word);                     
                     if (Character.isUpperCase(word.charAt(0))) {
                         acronymWords[j] = Utils.uncapitalize(word);

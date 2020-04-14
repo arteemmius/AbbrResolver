@@ -99,8 +99,8 @@ public class DBManager implements Closeable {
 
     public List<String> findAbbrLongForms(String abbr) throws Exception {
         List<String> values = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id WHERE shortForm.value = ?")) {
-            stmt.setString(1, abbr);
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id WHERE shortForm.value = '" + abbr + "'")) {
+//            stmt.setString(1, abbr);          
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
                     values.add(resultSet.getString(1));
