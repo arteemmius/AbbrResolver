@@ -28,12 +28,14 @@ public class ControllerGetFullText {
     private boolean runTextAnalizer;
     @Value("${classifier.url}")
     private String urlTextAnalizer;
+    @Value("${bd.classesMappingPath}")
+    private String classesMappingPath;    
     
     @RequestMapping(value = "/fullText", method = {RequestMethod.POST}, consumes = {"application/json"})
     public FullTextOutputData getFullText(@RequestBody FullTextInputData input) throws Exception{
         PatternFinder patternFinder = new PatternFinder();  
         FullTextOutputData output = new FullTextOutputData();
-        AbbrResolver abbrResolver = new AbbrResolver(input.getText(), input.getPO(), input.isCheckPO(), runTextAnalizer, urlTextAnalizer);
+        AbbrResolver abbrResolver = new AbbrResolver(input.getText(), input.getPO(), input.isCheckPO(), runTextAnalizer, urlTextAnalizer, classesMappingPath);
         if (input.isCheckGetAbbr()) {
             output.setAbbrList(abbrResolver.getAbbrList());
             abbrResolver.clearAbbrList();

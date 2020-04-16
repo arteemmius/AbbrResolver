@@ -1,6 +1,10 @@
+#настройки классификатора
 classifier:
   run: true
   url: http://localhost:8080/TextAnalizerREST-0.4/predictions
+#настройки мэппинга предметных областей в коды, соответсвующих данным в таблице knowledgeDict в БД
+bd:
+  classesMappingPath: D:\\modeluper\\mappingPO.txt
 #настройки логирования
 logging:
   level:

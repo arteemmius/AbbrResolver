@@ -1,6 +1,10 @@
 package ru.textanalysis.abbrresolver.run;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
 import java.util.*;
@@ -13,12 +17,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import ru.textanalysis.abbrresolver.model.classifier.ClassifierInputData;
+import ru.textanalysis.abbrresolver.model.classifier.ClassifierOutputData;
 import ru.textanalysis.abbrresolver.pojo.Descriptor;
 import ru.textanalysis.abbrresolver.pojo.DescriptorType;
 import ru.textanalysis.abbrresolver.pojo.Item;
 import ru.textanalysis.abbrresolver.pojo.Sentence;
-import ru.textanalysis.abbrresolver.model.classifier.ClassifierInputData;
-import ru.textanalysis.abbrresolver.model.classifier.ClassifierOutputData;
 import ru.textanalysis.abbrresolver.run.utils.DBManager;
 import ru.textanalysis.abbrresolver.run.utils.Utils;
 import ru.textanalysis.tawt.jmorfsdk.*;
@@ -40,17 +44,35 @@ public class AbbrResolver {
     private static String text;
     private static boolean runTextAnalizer;
     private static String urlTextAnalizer;
+    private static HashMap<String, String> classesMappingDict;
     private static Boolean checkPO;
     private static ArrayList<String> abbrList = new ArrayList<>();
     
-    public AbbrResolver(String text, String PO, Boolean checkPO, boolean runTextAnalizer, String urlTextAnalizer) {
+    public AbbrResolver(String text, String PO, Boolean checkPO, boolean runTextAnalizer, String urlTextAnalizer, String classesMappingPath) {
         this.text = text;
         this.textPO = PO;
         this.runTextAnalizer = runTextAnalizer;
         this.checkPO = checkPO;        
-        AbbrResolver.urlTextAnalizer = urlTextAnalizer;
+        this.urlTextAnalizer = urlTextAnalizer;
+        this.classesMappingDict = fillMappingDict(classesMappingPath);
     }    
-     
+    @SuppressWarnings("empty-statement")
+    public static HashMap<String, String> fillMappingDict(String path) {
+        HashMap<String, String> classesMappingVoc = new HashMap<>();
+        try {
+                String line;
+                BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF8"));
+                while ((line = br.readLine()) != null) {
+                        classesMappingVoc.put(line.split("=")[0], line.split("=")[1]);
+                }
+                br.close();
+        }
+        catch (Exception e) {
+                log.info("не могу прочитать файл!!!");
+                e.printStackTrace();
+        }          
+        return classesMappingVoc;
+    }
     public void fillAbbrDescriptions(String ptest, DBManager dictionary, List<Descriptor> descriptors, JPanel findAbbrPanel) throws Exception {
         log.info("fillAbbrDescriptions: start fillAbbrDescriptions()");
 //        log.info("text = " + text);
@@ -61,7 +83,7 @@ public class AbbrResolver {
         for (Descriptor curDescriptor : descriptors) {
             List<String> longForms = null;
             if (textPO != null)
-                longForms = dictionary.findAbbrLongFormsWithMainWord(curDescriptor.getValue(), textPO);
+                longForms = dictionary.findAbbrLongFormsWithMainWord(curDescriptor.getValue(), textPO, classesMappingDict);
             if (longForms == null || longForms.isEmpty())
                 longForms = dictionary.findAbbrLongForms(curDescriptor.getValue());
             
@@ -677,9 +699,8 @@ public class AbbrResolver {
     public void clearAbbrList() {
         abbrList.clear();
     }
-/*    
-    public void trace(String s) {
-        log.info(s);
-    }    
-*/	
+    
+    public static HashMap<String, String> getClassesMappingDict() {
+        return classesMappingDict;
+    }
 }

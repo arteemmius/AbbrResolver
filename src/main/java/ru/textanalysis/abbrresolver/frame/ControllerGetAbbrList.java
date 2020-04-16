@@ -28,11 +28,13 @@ public class ControllerGetAbbrList {
     private boolean runTextAnalizer;
     @Value("${classifier.url}")
     private String urlTextAnalizer;
+    @Value("${bd.classesMappingPath}")
+    private String classesMappingPath;
     
     @RequestMapping(value = "/AbbrList", method = {RequestMethod.POST}, consumes = {"application/json"})
     public AbbrListOutputData getAbbrList(@RequestBody AbbrListInputData input) throws Exception{
         AbbrListOutputData output = new AbbrListOutputData();
-        AbbrResolver abbrResolver = new AbbrResolver(input.getText(), input.getPO(), input.isCheckPO(), runTextAnalizer, urlTextAnalizer);
+        AbbrResolver abbrResolver = new AbbrResolver(input.getText(), input.getPO(), input.isCheckPO(), runTextAnalizer, urlTextAnalizer, classesMappingPath);
         output.setAbbrList(abbrResolver.getAbbrList());
         abbrResolver.clearAbbrList();
         return output;

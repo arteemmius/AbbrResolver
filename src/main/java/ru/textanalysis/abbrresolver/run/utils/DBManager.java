@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,9 +111,16 @@ public class DBManager implements Closeable {
         return values;
     }
     
-    public List<String> findAbbrLongFormsWithMainWord(String abbr, String topic) throws Exception {
+    public List<String> findAbbrLongFormsWithMainWord(String abbr, String topic, HashMap<String, String> classesMappingDict) throws Exception {
+        String codeTopic = "";  
+
+        if (classesMappingDict != null)
+            codeTopic = classesMappingDict.get(topic);
+        log.info("codeTopic = " + codeTopic);
+        log.info("topic = " + topic);
+        
         List<String> values = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id WHERE shortForm.value = '" + abbr + "' and longForm.description LIKE '%" + topic + "%'")) {
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id INNER JOIN relLongKnowledge ON relLongKnowledge.longFormId = longForm.id  WHERE shortForm.value = '" + abbr + "' and relLongKnowledge.knowledgeId = '" + codeTopic + "'")) {
             //stmt.setString(1, abbr);
             //stmt.setString(2, topic);
             try (ResultSet resultSet = stmt.executeQuery()) {

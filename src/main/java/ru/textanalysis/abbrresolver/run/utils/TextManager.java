@@ -308,7 +308,7 @@ public class TextManager {
         List<String> longForm = null;
         if (check) {
             if (textPO != null)
-                longForm = dictionary.findAbbrLongFormsWithMainWord(abbr.getValue(), textPO);
+                longForm = dictionary.findAbbrLongFormsWithMainWord(abbr.getValue(), textPO, abbrResolver.getClassesMappingDict());
             if (longForm == null || longForm.isEmpty())
                 longForm = dictionary.findAbbrLongForms(abbr.getValue());
             if (longForm != null && longForm.size() > 0) {
