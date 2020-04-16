@@ -47,6 +47,7 @@ public class AbbrResolver {
     private static HashMap<String, String> classesMappingDict;
     private static Boolean checkPO;
     private static ArrayList<String> abbrList = new ArrayList<>();
+    private static ArrayList<String> abbrListWithoutDesc = new ArrayList<>();
     
     public AbbrResolver(String text, String PO, Boolean checkPO, boolean runTextAnalizer, String urlTextAnalizer, String classesMappingPath) {
         this.text = text;
@@ -700,6 +701,14 @@ public class AbbrResolver {
         abbrList.clear();
     }
     
+    public ArrayList<String> getAbbrListWithoutDesc() {
+        return abbrListWithoutDesc;
+    }
+    
+    public void clearAbbrListWithoutDesc() {
+        abbrListWithoutDesc.clear();
+    }    
+ 
     public static HashMap<String, String> getClassesMappingDict() {
         return classesMappingDict;
     }

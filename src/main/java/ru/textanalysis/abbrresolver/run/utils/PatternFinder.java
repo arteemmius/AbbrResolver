@@ -26,8 +26,9 @@ public class PatternFinder {
         PATTERNS.put(DescriptorType.SHORT_WORD, Arrays.asList(
                 //Pattern.compile("\\b[а-я]+\\.([а-я]+\\.)?"),      //Сокр. усечение
                 Pattern.compile("[A-ЯЁA-Z]{2,}"),                     //абревиатура
-                Pattern.compile("[А-Яа-я.]+-[а-я]+"),                //Сокр.стяжение
-                Pattern.compile("[а-я.]+\\/[а-я]+"))                //общепринятое            
+                Pattern.compile("[А-Яа-я.]+-[а-я]+"))                //Сокр.стяжение
+        //[SAM:K416] более не ищем общепринятые, не эффективно             
+//                Pattern.compile("[а-я.]+\\/[а-я]+"))                //общепринятое            
         ); 
         PATTERNS.put(DescriptorType.CUT_WORD, Arrays.asList(
                 //Pattern.compile("\\b[а-я]+\\.([а-я]+\\.)?\\s[а-я]*"))      //Сокр. усечение
