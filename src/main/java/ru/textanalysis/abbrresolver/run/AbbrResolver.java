@@ -69,7 +69,7 @@ public class AbbrResolver {
                 br.close();
         }
         catch (Exception e) {
-                log.info("не могу прочитать файл!!!");
+                log.info("can't read file from " + path);
                 e.printStackTrace();
         }          
         return classesMappingVoc;
