@@ -74,56 +74,6 @@ public class AbbrResolver {
         }          
         return classesMappingVoc;
     }
-    public void fillAbbrDescriptions(String ptest, DBManager dictionary, List<Descriptor> descriptors, JPanel findAbbrPanel) throws Exception {
-        log.info("fillAbbrDescriptions: start fillAbbrDescriptions()");
-//        log.info("text = " + text);
-        if (textPO == null && runTextAnalizer && checkPO)
-            textPO = runClassifier(text);
-        log.info("fillAbbrDescriptions: textPO = " + textPO);
-        log.info("fillAbbrDescriptions: runTextAnalizer = " + runTextAnalizer);
-        for (Descriptor curDescriptor : descriptors) {
-            List<String> longForms = null;
-            if (textPO != null)
-                longForms = dictionary.findAbbrLongFormsWithMainWord(curDescriptor.getValue(), textPO, classesMappingDict);
-            if (longForms == null || longForms.isEmpty())
-                longForms = dictionary.findAbbrLongForms(curDescriptor.getValue());
-            
-            List<String> properties = dictionary.findAbbrInfo(curDescriptor.getValue());
-
-            if (longForms.isEmpty() && curDescriptor.getValue().contains("-")) {
-                for (String s : getPossibleInfinitives(curDescriptor.getValue())) {
-                    longForms = dictionary.findAbbrLongForms(s);
-                    if (!longForms.isEmpty()) {
-                        break;
-                    }
-                }
-            }
-            
-            
-            if (!longForms.isEmpty()) {
-/*                
-                if(!abbrList.contains(curDescriptor.getValue() + " : " + longForms.get(0)))
-                    abbrList.add(curDescriptor.getValue() + " : " + longForms.get(0));
-*/                
-                curDescriptor.setDesc(longForms.get(0));
-            }else{
-                curDescriptor.setDesc(curDescriptor.getValue());
-            }
-            Item item = new Item();
-            if (!properties.isEmpty()) {
-                item.setWord(properties.get(0));
-                item.setDefinition(properties.get(1));
-                item.setDescription("\t"); 
-            }
-            log.info("fillAbbrDescriptions: " + item.getWord() + "\t" + item.getDefinition());
-            //AbbrPanel abbrPanel = new AbbrPanel();
-            //abbrPanel.addAbbrPanel(item.getWord(), item.getDefinition(), item.getDescription());
-            //findAbbrPanel.add(abbrPanel);
-            //findAbbrPanel.repaint();
-            //findAbbrPanel.revalidate();
-        }
-        log.info("fillAbbrDescriptions: success complete");           
-    }
 
     public String resolveAcronyms(JMorfSdk jMorfSdk, Sentence sentence) throws Exception {
 
@@ -156,22 +106,7 @@ public class AbbrResolver {
                     acronymWords = curDescriptor.getDesc().split("");
                 }
                 log.info("resolveAcronyms: curDescriptor.getDesc().split(\" \")= " + curDescriptor.getDesc().split(" ").toString());                                 
-                log.info("resolveAcronyms: 1acronymWords= " + String.join(",", acronymWords));               
-                boolean[] capitalizeWords = new boolean[acronymWords.length];
-
-                //save acronym case
-                for (int j = 0; j < acronymWords.length; j++) {
-                    String word = acronymWords[j];
-                    //[SAM:K414] в БД сокращения лежат с лишними пробелами, надо учитывать
-                    if ("".equals(word) || " ".equals(word)) continue;
-                    
-                    log.info("resolveAcronyms: word= " + word);                     
-                    if (Character.isUpperCase(word.charAt(0))) {
-                        acronymWords[j] = Utils.uncapitalize(word);
-                        capitalizeWords[j] = true;
-                    }
-                }
-                log.info("resolveAcronyms: 2acronymWords= " + String.join(",", acronymWords)); 
+                log.info("resolveAcronyms: acronymWords= " + String.join(",", acronymWords));               
                 int mainWordAcronymIndex = getMainWordAcronymIndex(acronymWords, jMorfSdk); //getMainWordAcronymIndex - индекс главного слова внутри сокращения
                 log.info("resolveAcronyms: mainWordAcronymIndex= " + mainWordAcronymIndex);
                 Integer collacationMainWordIndex = getMainWordIndex(descriptors, i, acronymWords[mainWordAcronymIndex], jMorfSdk);
@@ -203,23 +138,17 @@ public class AbbrResolver {
                     }
                 }
                 log.info("resolveAcronyms: after mainWordAcronymIndex" + mainWordAcronymIndex);
-                //restore acronym case
-                for (int j = 0; j < acronymWords.length; j++) {
-                    if (capitalizeWords[j]) {
-                        acronymWords[j] = Utils.capitalize(acronymWords[j]);
-                        log.info("resolveAcronyms: acronymWords[" + j + "]" + acronymWords[j]);
-                    }
-                }
                 log.info("resolveAcronyms: Utils.concat(\" \", Arrays.asList(acronymWords)) = " + Utils.concat(" ", Arrays.asList(acronymWords)));
                 log.info("resolveAcronyms: curDescriptor.getValue()" + curDescriptor.getValue());
 //                copy = copy.replace(curDescriptor.getValue(), Utils.concat(" ", Arrays.asList(acronymWords)));      //replaceAll заменить
                 
                 text.append(Utils.concat(" ", Arrays.asList(acronymWords)));
-                text.append(" ");
-            } else{
+                if (curDescriptorNext != null && curDescriptorNext.getType() != DescriptorType.PUNCTUATION_CHAR && curDescriptorNext.getType() != DescriptorType.SENTENCE_END)                
+                    text.append(" ");
+            } else {
                 text.append(curDescriptor.getValue());
-                if (curDescriptorNext != null && curDescriptorNext.getType() != DescriptorType.PUNCTUATION_CHAR &&
-                        curDescriptorNext.getType() != DescriptorType.SENTENCE_END || curDescriptor.getType() == DescriptorType.SENTENCE_END)
+                if ((curDescriptorNext != null && curDescriptorNext.getType() != DescriptorType.PUNCTUATION_CHAR &&
+                        curDescriptorNext.getType() != DescriptorType.SENTENCE_END) || curDescriptor.getType() == DescriptorType.SENTENCE_END)
                     text.append(" ");
             }
         }

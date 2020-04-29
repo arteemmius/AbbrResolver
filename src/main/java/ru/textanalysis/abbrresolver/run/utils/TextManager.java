@@ -148,7 +148,7 @@ public class TextManager {
         Matcher matchAbbr = patternAbbr.matcher(s);
         if (matchAbbr.matches()) {
                 Descriptor desc0 = new Descriptor(DescriptorType.RUSSIAN_LEX, j, s.length(), s);
-                sentenceDescm.add(setDesc(desc0));
+                sentenceDescm.add(setDesc(desc0, j));
                 return true;
         }
         //нашли стяжение
@@ -156,7 +156,7 @@ public class TextManager {
         Matcher matchSt = patternSt.matcher(s);
         if (matchSt.matches()) {
                 Descriptor desc0 = new Descriptor(DescriptorType.RUSSIAN_LEX, j, s.length(), s);
-                sentenceDescm.add(setDesc(desc0));
+                sentenceDescm.add(setDesc(desc0, j));
                 return true;
         }
         
@@ -171,7 +171,7 @@ public class TextManager {
             //содержимое скобок
             Descriptor desc1 = new Descriptor(DescriptorType.RUSSIAN_LEX, j + 1, matchP.group(2).length(), matchP.group(2));
             if (!caseNextWord) {
-                desc1 = setTypeAndDesc(desc1, regexpUsech);
+                desc1 = setTypeAndDesc(desc1, regexpUsech, j);
                 if (desc1.getType() != DescriptorType.RUSSIAN_LEX) {
                     sentenceDescm.add(desc0);
                     sentenceDescm.add(desc1);
@@ -180,7 +180,7 @@ public class TextManager {
                 }
             }
             //[SAM:K416] нашли стяжение
-            desc1 = setTypeAndDesc(desc1, regexpStej);
+            desc1 = setTypeAndDesc(desc1, regexpStej, j);
             if (desc1.getType() != DescriptorType.RUSSIAN_LEX) {
                 sentenceDescm.add(desc0);
                 sentenceDescm.add(desc1);
@@ -189,7 +189,7 @@ public class TextManager {
             }            
             
             //[SAM:K412] нашли аббревиатуру
-            desc1 = setTypeAndDesc(desc1, regexpAbbr);
+            desc1 = setTypeAndDesc(desc1, regexpAbbr, j);
             sentenceDescm.add(desc0);
             sentenceDescm.add(desc1);
             sentenceDescm.add(desc2);
@@ -201,7 +201,7 @@ public class TextManager {
         if (m0.matches()) {
             if (!caseNextWord) {
                 Descriptor desc = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m0.group().length(), m0.group());
-                desc = setTypeAndDesc(desc, regexpUsech);
+                desc = setTypeAndDesc(desc, regexpUsech, j);
                 if (desc.getType() != DescriptorType.RUSSIAN_LEX) {
                     sentenceDescm.add(desc);
                     return true;
@@ -209,7 +209,7 @@ public class TextManager {
             }
             //[SAM:K416] нашли стяжение
             Descriptor desc = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m0.group().length(), m0.group());
-            desc = setTypeAndDesc(desc, regexpStej + "\\.");
+            desc = setTypeAndDesc(desc, regexpStej + "\\.", j);
             if (desc.getType() != DescriptorType.RUSSIAN_LEX) {
                 sentenceDescm.add(desc);
                 return true;
@@ -217,7 +217,7 @@ public class TextManager {
             
             Descriptor desc0 = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m0.group(1).length(), m0.group(1));
             //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
-            desc0 = setTypeAndDesc(desc0, regexpAbbr);
+            desc0 = setTypeAndDesc(desc0, regexpAbbr, j);
             Descriptor desc1 = new Descriptor(DescriptorType.SENTENCE_END, j + 1, m0.group(2).length(), m0.group(2));
             sentenceDescm.add(desc0);
             sentenceDescm.add(desc1);
@@ -229,7 +229,7 @@ public class TextManager {
         if (m1.matches()) {
             if (!caseNextWord) {
                 Descriptor desc = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m1.group().length(), m1.group());
-                desc = setTypeAndDesc(desc, regexpUsech);
+                desc = setTypeAndDesc(desc, regexpUsech, j);
                 if (desc.getType() != DescriptorType.RUSSIAN_LEX) {
                     sentenceDescm.add(desc);
                     return true;
@@ -238,10 +238,10 @@ public class TextManager {
             Descriptor desc0 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j, m1.group(1).length(), m1.group(1));
             Descriptor desc1 = new Descriptor(DescriptorType.RUSSIAN_LEX, j + 1, m1.group(2).length(), m1.group(2));            
             //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
-            desc1 = setTypeAndDesc(desc1, regexpAbbr);  
+            desc1 = setTypeAndDesc(desc1, regexpAbbr, j);  
             //[SAM:K416] нашли стяжение
             if (desc1.getType() == DescriptorType.RUSSIAN_LEX) 
-                desc1 = setTypeAndDesc(desc1, regexpStej);
+                desc1 = setTypeAndDesc(desc1, regexpStej, j);
             
             Descriptor desc2 = new Descriptor(DescriptorType.SENTENCE_END, j + 2, m1.group(3).length(), m1.group(3));
             sentenceDescm.add(desc0);
@@ -255,10 +255,10 @@ public class TextManager {
         if (m2.matches()) {
             Descriptor desc0 = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m2.group(1).length(), m2.group(1));
             //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
-            desc0 = setTypeAndDesc(desc0, regexpAbbr);   
+            desc0 = setTypeAndDesc(desc0, regexpAbbr, j);   
             //[SAM:K416] нашли стяжение
             if (desc0.getType() == DescriptorType.RUSSIAN_LEX) 
-                desc0 = setTypeAndDesc(desc0, regexpStej);
+                desc0 = setTypeAndDesc(desc0, regexpStej, j);
                         
             Descriptor desc1 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j + 1, m2.group(2).length(), m2.group(2));
             sentenceDescm.add(desc0);
@@ -272,10 +272,10 @@ public class TextManager {
             Descriptor desc0 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j, m3.group(1).length(), m3.group(1));
             Descriptor desc1 = new Descriptor(DescriptorType.RUSSIAN_LEX, j + 1, m3.group(2).length(), m3.group(2));
             //[SAM:K412] пересчитываем тип и заполняем расшифровку, если это необходимо
-            desc1 = setTypeAndDesc(desc1, regexpAbbr);
+            desc1 = setTypeAndDesc(desc1, regexpAbbr, j);
             //[SAM:K416] нашли стяжение
             if (desc1.getType() == DescriptorType.RUSSIAN_LEX) 
-                desc1 = setTypeAndDesc(desc1, regexpStej);            
+                desc1 = setTypeAndDesc(desc1, regexpStej, j);            
             Descriptor desc2 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j + 2, m3.group(3).length(), m3.group(3));
             sentenceDescm.add(desc0);
             sentenceDescm.add(desc1);
@@ -294,62 +294,90 @@ public class TextManager {
     }
     
     //[SAM:K412] для вычисления типа слова в частных случаях функции checkWordType
-    private Descriptor setTypeAndDesc(Descriptor abbr, String regExp) throws Exception {
+    private Descriptor setTypeAndDesc(Descriptor abbr, String regExp, int index) throws Exception {
         boolean check = checkRegExp(abbr.getValue(), regExp);
         String textPO = abbrResolver.getTextPO();
+        String codePO = null;
+        if(textPO != null) {
+            codePO = abbrResolver.getClassesMappingDict().get(textPO);
+        }        
         List<String> longForm = null;
         if (check) {
-            if (textPO != null)
-                longForm = dictionary.findAbbrLongFormsWithMainWord(abbr.getValue(), textPO, abbrResolver.getClassesMappingDict());
+            if (codePO != null)
+                longForm = dictionary.findAbbrLongFormsWithMainWord(abbr.getValue(), codePO);
             if (longForm == null || longForm.isEmpty())
                 longForm = dictionary.findAbbrLongForms(abbr.getValue());
             if (longForm != null && longForm.size() > 0) {
                 abbr.setType(DescriptorType.SHORT_WORD);
-                abbr.setDesc(longForm.get(0));                  
+            if (index == 0) {
+                StringBuilder strBuffer = new StringBuilder(longForm.get(0));
+                strBuffer.setCharAt(0, Character.toUpperCase(longForm.get(0).charAt(0)));
+                abbr.setDesc(strBuffer.toString());
+            }
+            else
+                abbr.setDesc(longForm.get(0));                 
             }
             String toAbbrList;
             if (abbr.getDesc() != null) {
-                toAbbrList = abbr.getValue() + " : " + abbr.getDesc();
+                String desc = abbr.getDesc();
+                String abbrValue = abbr.getValue();
+                toAbbrList = abbrValue + " : " + desc.toLowerCase();
                 if(!abbrResolver.getAbbrList().contains(toAbbrList) &&
-                        !abbr.getValue().equals(abbr.getDesc())) {
+                        !abbrValue.toLowerCase().equals(desc.toLowerCase())) {
                     abbrResolver.getAbbrList().add(toAbbrList);
                 }                 
             }
             else {
-                toAbbrList = abbr.getValue() + " : упс, расшифровки нет в словаре, но мы это скоро исправим :)";
+                String desc = abbr.getDesc();
+                String abbrValue = abbr.getValue();
+                toAbbrList = abbrValue + " : Расшифровка отсутствует в словаре";
                 if(!abbrResolver.getAbbrListWithoutDesc().contains(toAbbrList) &&
-                        !abbr.getValue().equals(abbr.getDesc())) {
+                        !abbrValue.toLowerCase().equals(desc.toLowerCase())) {
                     abbrResolver.getAbbrListWithoutDesc().add(toAbbrList);
                 }          
-            }                 
+            }               
         }
         return abbr;
     }
     
     //[SAM:K412] для вычисления типа слова в частных случаях функции checkWordType
-    private Descriptor setDesc(Descriptor abbr) throws Exception {
+    private Descriptor setDesc(Descriptor abbr, int index) throws Exception {
         String textPO = abbrResolver.getTextPO();
+        String codePO = null;
+        if(textPO != null) {
+            codePO = abbrResolver.getClassesMappingDict().get(textPO);
+        }
         List<String> longForm = null;
-        if (textPO != null)
-            longForm = dictionary.findAbbrLongFormsWithMainWord(abbr.getValue(), textPO, abbrResolver.getClassesMappingDict());
+        if (codePO != null)
+            longForm = dictionary.findAbbrLongFormsWithMainWord(abbr.getValue(), codePO);
         if (longForm == null || longForm.isEmpty())
             longForm = dictionary.findAbbrLongForms(abbr.getValue());
         if (longForm != null && longForm.size() > 0) {
             abbr.setType(DescriptorType.SHORT_WORD);
-            abbr.setDesc(longForm.get(0));               
+            if (index == 0) {
+                StringBuilder strBuffer = new StringBuilder(longForm.get(0));
+                strBuffer.setCharAt(0, Character.toUpperCase(longForm.get(0).charAt(0)));
+                abbr.setDesc(strBuffer.toString());
+            }
+            else
+                abbr.setDesc(longForm.get(0));
         }
         String toAbbrList;
         if (abbr.getDesc() != null) {
-            toAbbrList = abbr.getValue() + " : " + abbr.getDesc();
+            String desc = abbr.getDesc();
+            String abbrValue = abbr.getValue();
+            toAbbrList = abbrValue + " : " + desc.toLowerCase();
             if(!abbrResolver.getAbbrList().contains(toAbbrList) &&
-                    !abbr.getValue().equals(abbr.getDesc())) {
+                    !abbrValue.toLowerCase().equals(desc.toLowerCase())) {
                 abbrResolver.getAbbrList().add(toAbbrList);
             }                 
         }
         else {
-            toAbbrList = abbr.getValue() + " : упс, расшифровки нет в словаре, но мы это скоро исправим :)";
+            String desc = abbr.getDesc();
+            String abbrValue = abbr.getValue();
+            toAbbrList = abbrValue + " : Расшифровка отсутствует в словаре";
             if(!abbrResolver.getAbbrListWithoutDesc().contains(toAbbrList) &&
-                    !abbr.getValue().equals(abbr.getDesc())) {
+                    !abbrValue.toLowerCase().equals(desc.toLowerCase())) {
                 abbrResolver.getAbbrListWithoutDesc().add(toAbbrList);
             }          
         }
@@ -363,23 +391,6 @@ public class TextManager {
         Matcher m = pattern.matcher(text);     
         return m.matches(); 
     }
-    
-    private void fillShortWords(String text, List<Descriptor> supposedShortWords, JPanel findAbbrPanel) throws Exception {
-        abbrResolver.fillAbbrDescriptions(text, dictionary, supposedShortWords, findAbbrPanel);
-        Set<String> notFounded = new HashSet<>();
-        for (Descriptor descriptor : supposedShortWords) {
-            if (descriptor.getDesc() != null && !descriptor.getDesc().isEmpty()) {
-                descriptor.setType(DescriptorType.SHORT_WORD);
-            } else {
-                descriptor.setType(DescriptorType.RUSSIAN_LEX);
-                notFounded.add(descriptor.getValue());
-            }
-        }
-        if (!notFounded.isEmpty()) {
-            log.info("Not founded " + notFounded.size() + " words: " + Arrays.toString(notFounded.toArray()));
-        }
-    }
-
   
     private List<Descriptor> getSupposedCommonShortWords(List<Sentence> sentences) {
         List<Descriptor> resList = new ArrayList<>();

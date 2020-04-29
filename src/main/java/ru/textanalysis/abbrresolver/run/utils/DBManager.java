@@ -111,14 +111,8 @@ public class DBManager implements Closeable {
         return values;
     }
     
-    public List<String> findAbbrLongFormsWithMainWord(String abbr, String topic, HashMap<String, String> classesMappingDict) throws Exception {
-        String codeTopic = "";  
-
-        if (classesMappingDict != null)
-            codeTopic = classesMappingDict.get(topic);
+    public List<String> findAbbrLongFormsWithMainWord(String abbr, String codeTopic) throws Exception {
         log.info("codeTopic = " + codeTopic);
-        log.info("topic = " + topic);
-        
         List<String> values = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id INNER JOIN relLongKnowledge ON relLongKnowledge.longFormId = longForm.id  WHERE shortForm.value = '" + abbr + "' and relLongKnowledge.knowledgeId = '" + codeTopic + "'")) {
             //stmt.setString(1, abbr);
