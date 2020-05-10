@@ -317,22 +317,23 @@ public class TextManager {
             else
                 abbr.setDesc(longForm.get(0));                 
             }
+            
             String toAbbrList;
-            if (abbr.getDesc() != null) {
+            if (longForm != null && longForm.size() > 0) {
                 String desc = abbr.getDesc();
-                String abbrValue = abbr.getValue();
-                toAbbrList = abbrValue + " : " + desc.toLowerCase();
+                String abbrValue = abbr.getValue();                
+                log.info("longForm_size = " + longForm.size());
+                toAbbrList = abbr.getValue() + ";" + String.join(";", longForm);
+                log.info("toAbbrList = " + toAbbrList);
                 if(!abbrResolver.getAbbrList().contains(toAbbrList) &&
                         !abbrValue.toLowerCase().equals(desc.toLowerCase())) {
                     abbrResolver.getAbbrList().add(toAbbrList);
                 }                 
             }
             else {
-                String desc = abbr.getDesc();
                 String abbrValue = abbr.getValue();
                 toAbbrList = abbrValue + " : Расшифровка отсутствует в словаре";
-                if(!abbrResolver.getAbbrListWithoutDesc().contains(toAbbrList) &&
-                        !abbrValue.toLowerCase().equals(desc.toLowerCase())) {
+                if(!abbrResolver.getAbbrListWithoutDesc().contains(toAbbrList)) {
                     abbrResolver.getAbbrListWithoutDesc().add(toAbbrList);
                 }          
             }               
@@ -362,26 +363,26 @@ public class TextManager {
             else
                 abbr.setDesc(longForm.get(0));
         }
+        
         String toAbbrList;
-        if (abbr.getDesc() != null) {
+        if (longForm != null && longForm.size() > 0) {
             String desc = abbr.getDesc();
             String abbrValue = abbr.getValue();
-            toAbbrList = abbrValue + " : " + desc.toLowerCase();
+            log.info("longForm_size = " + longForm.size());
+            toAbbrList = abbr.getValue() + ";" + String.join(";", longForm);
+            log.info("toAbbrList = " + toAbbrList);
             if(!abbrResolver.getAbbrList().contains(toAbbrList) &&
                     !abbrValue.toLowerCase().equals(desc.toLowerCase())) {
                 abbrResolver.getAbbrList().add(toAbbrList);
             }                 
         }
         else {
-            String desc = abbr.getDesc();
             String abbrValue = abbr.getValue();
             toAbbrList = abbrValue + " : Расшифровка отсутствует в словаре";
-            if(!abbrResolver.getAbbrListWithoutDesc().contains(toAbbrList) &&
-                    !abbrValue.toLowerCase().equals(desc.toLowerCase())) {
-                abbrResolver.getAbbrListWithoutDesc().add(toAbbrList);
-            }          
+                if(!abbrResolver.getAbbrListWithoutDesc().contains(toAbbrList)) {
+                    abbrResolver.getAbbrListWithoutDesc().add(toAbbrList);
+                }          
         }
-        
         return abbr;
     }    
         
