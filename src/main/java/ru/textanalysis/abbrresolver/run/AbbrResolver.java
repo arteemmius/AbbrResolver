@@ -641,4 +641,36 @@ public class AbbrResolver {
     public static HashMap<String, String> getClassesMappingDict() {
         return classesMappingDict;
     }
+
+    public static String getText() {
+        return text;
+    }
+
+    public static void setText(String text) {
+        AbbrResolver.text = text;
+    }
+
+    public static boolean isRunTextAnalizer() {
+        return runTextAnalizer;
+    }
+
+    public static void setRunTextAnalizer(boolean runTextAnalizer) {
+        AbbrResolver.runTextAnalizer = runTextAnalizer;
+    }
+
+    public static String getUrlTextAnalizer() {
+        return urlTextAnalizer;
+    }
+
+    public static void setUrlTextAnalizer(String urlTextAnalizer) {
+        AbbrResolver.urlTextAnalizer = urlTextAnalizer;
+    }
+
+    public static Boolean isCheckPO() {
+        return checkPO;
+    }
+
+    public static void setCheckPO(Boolean checkPO) {
+        AbbrResolver.checkPO = checkPO;
+    }
 }
