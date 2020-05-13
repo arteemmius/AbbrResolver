@@ -622,6 +622,10 @@ public class AbbrResolver {
         return textPO;
     }
 
+    public void setTextPO(String s) {
+        this.textPO = s;
+    }
+    
     public ArrayList<String> getAbbrList() {
         return abbrList;
     }
@@ -638,39 +642,39 @@ public class AbbrResolver {
         abbrListWithoutDesc.clear();
     }    
  
-    public static HashMap<String, String> getClassesMappingDict() {
+    public HashMap<String, String> getClassesMappingDict() {
         return classesMappingDict;
     }
 
-    public static String getText() {
+    public String getText() {
         return text;
     }
 
-    public static void setText(String text) {
-        AbbrResolver.text = text;
+    public void setText(String text) {
+        this.text = text;
     }
 
-    public static boolean isRunTextAnalizer() {
+    public boolean isRunTextAnalizer() {
         return runTextAnalizer;
     }
 
-    public static void setRunTextAnalizer(boolean runTextAnalizer) {
-        AbbrResolver.runTextAnalizer = runTextAnalizer;
+    public void setRunTextAnalizer(boolean runTextAnalizer) {
+        this.runTextAnalizer = runTextAnalizer;
     }
 
-    public static String getUrlTextAnalizer() {
+    public String getUrlTextAnalizer() {
         return urlTextAnalizer;
     }
 
-    public static void setUrlTextAnalizer(String urlTextAnalizer) {
-        AbbrResolver.urlTextAnalizer = urlTextAnalizer;
+    public void setUrlTextAnalizer(String urlTextAnalizer) {
+        this.urlTextAnalizer = urlTextAnalizer;
     }
 
-    public static Boolean isCheckPO() {
+    public Boolean isCheckPO() {
         return checkPO;
     }
 
-    public static void setCheckPO(Boolean checkPO) {
-        AbbrResolver.checkPO = checkPO;
+    public void setCheckPO(Boolean checkPO) {
+        this.checkPO = checkPO;
     }
 }

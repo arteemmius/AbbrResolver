@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.textanalysis.abbrresolver.model.abbr.AbbrListInputData;
 import ru.textanalysis.abbrresolver.model.abbr.AbbrListOutputData;
@@ -38,5 +39,12 @@ public class ControllerGetAbbrList {
         output.setAbbrList(abbrResolver.getAbbrList());
         abbrResolver.clearAbbrList();
         return output;
-    }    
+    } 
+    
+    //[SAM:K513] заглушка
+    @RequestMapping(value = "/AbbrList", method = {RequestMethod.GET})
+    @ResponseBody
+    public String getAbbrListInfo() {
+        return "Данный URL поддерживает только POST запросы!";
+    }     
 }

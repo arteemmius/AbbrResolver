@@ -6,10 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 import ru.textanalysis.abbrresolver.model.abbr.FullTextInputData;
 import ru.textanalysis.abbrresolver.model.abbr.FullTextOutputData;
 import ru.textanalysis.abbrresolver.pojo.Sentence;
@@ -78,4 +82,11 @@ public class ControllerGetFullText {
             return null;
         }        
     }
+    
+    //[SAM:K513] заглушка
+    @RequestMapping(value = "/fullText", method = {RequestMethod.GET})
+    @ResponseBody
+    public String getFullTextInfo() {
+        return "Данный URL поддерживает только POST запросы!";
+    }         
 }

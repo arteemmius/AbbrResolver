@@ -3,6 +3,7 @@ package ru.textanalysis.abbrresolver.run.utils;
 
 import com.ibm.icu.text.BreakIterator;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JPanel;
@@ -47,11 +48,21 @@ public class TextManager {
     private final String regexpStej = "[А-Яа-я.]+-[а-я]+";
     private final String regexpUsech = "\\b[а-я]+\\.";
 
-    //DbDictionary
     public TextManager(PatternFinder patternFinder, AbbrResolver abbrResolver) {
         this.patternFinder = patternFinder;
         this.abbrResolver = abbrResolver;
         this.dictionary = DBManager.getInstance();
+        
+        log.info("textPO = " + abbrResolver.getTextPO());
+        log.info("abbrResolver.isRunTextAnalizer() = " + abbrResolver.isRunTextAnalizer());
+        log.info("abbrResolver.isCheckPO() = " + abbrResolver.isCheckPO());    
+        
+        if (abbrResolver.getTextPO() == null && abbrResolver.isRunTextAnalizer() && abbrResolver.isCheckPO())
+            try {
+                abbrResolver.setTextPO(abbrResolver.runClassifier(abbrResolver.getText()));
+        } catch (Exception ex) {
+            java.util.logging.Logger.getLogger(TextManager.class.getName()).log(Level.SEVERE, null, ex);
+        }        
     }
 
     
@@ -296,15 +307,9 @@ public class TextManager {
     //[SAM:K412] для вычисления типа слова в частных случаях функции checkWordType
     private Descriptor setTypeAndDesc(Descriptor abbr, String regExp, int index) throws Exception {
         boolean check = checkRegExp(abbr.getValue(), regExp);
-        String textPO = abbrResolver.getTextPO();
-        log.info("textPO = " + textPO);
-        log.info("abbrResolver.isRunTextAnalizer() = " + abbrResolver.isRunTextAnalizer());
-        log.info("abbrResolver.isCheckPO() = " + abbrResolver.isCheckPO());        
-        if (textPO == null && abbrResolver.isRunTextAnalizer() && abbrResolver.isCheckPO())
-            textPO = abbrResolver.runClassifier(abbrResolver.getText());
         String codePO = null;
-        if(textPO != null) {
-            codePO = abbrResolver.getClassesMappingDict().get(textPO);
+        if(abbrResolver.getTextPO() != null) {
+            codePO = abbrResolver.getClassesMappingDict().get(abbrResolver.getTextPO());
         }        
         List<String> longForm = null;
         if (check) {
@@ -347,16 +352,10 @@ public class TextManager {
     }
     
     //[SAM:K412] для вычисления типа слова в частных случаях функции checkWordType
-    private Descriptor setDesc(Descriptor abbr, int index) throws Exception {
-        String textPO = abbrResolver.getTextPO();
-        log.info("textPO = " + textPO);
-        log.info("abbrResolver.isRunTextAnalizer() = " + abbrResolver.isRunTextAnalizer());
-        log.info("abbrResolver.isCheckPO() = " + abbrResolver.isCheckPO());
-        if (textPO == null && abbrResolver.isRunTextAnalizer() && abbrResolver.isCheckPO())
-            textPO = abbrResolver.runClassifier(abbrResolver.getText());        
+    private Descriptor setDesc(Descriptor abbr, int index) throws Exception {     
         String codePO = null;
-        if(textPO != null) {
-            codePO = abbrResolver.getClassesMappingDict().get(textPO);
+        if(abbrResolver.getTextPO() != null) {
+            codePO = abbrResolver.getClassesMappingDict().get(abbrResolver.getTextPO());
         }
         List<String> longForm = null;
         if (codePO != null)
