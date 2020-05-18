@@ -21,6 +21,7 @@
       <!--<start-class>com.mai.textanalyzer.web.vaadin.pages.multiclassifierlearning.MultiLearner</start-class> -->
       <!-- <start-class>ru.textanalysis.abbrresolver.utils.TestRestClientAbbr_2</start-class> -->
       <start-class>ru.textanalysis.abbrresolver.frame.Application</start-class>
+       <version.tawt>66b3ffb881</version.tawt>
    </properties>
    <dependencies>
       <dependency>
@@ -53,96 +54,107 @@
          <artifactId>commons-lang3</artifactId>
          <version>3.5</version>
       </dependency>
-      <dependency>
-         <groupId>com.github.jalexpr</groupId>
-         <artifactId>tawt</artifactId>
-         <version>c6564ac2ac</version>
-      </dependency>
-      <dependency>
-         <groupId>com.github.jalexpr.tawt</groupId>
-         <artifactId>gama</artifactId>
-         <version>c6564ac2ac</version>
-         <exclusions>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>jmorfsdk</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>morphological-structures</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
-      <dependency>
-         <groupId>com.github.jalexpr.tawt</groupId>
-         <artifactId>ambiguity-words-filter</artifactId>
-         <version>c6564ac2ac</version>
-         <exclusions>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>morphological-structures</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>rules-for-compatibility</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
-      <dependency>
-         <groupId>com.github.jalexpr.tawt</groupId>
-         <artifactId>jmorfsdk</artifactId>
-         <version>c6564ac2ac</version>
-         <exclusions>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>morphological-structures</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
-      <dependency>
-         <groupId>com.github.jalexpr.tawt</groupId>
-         <artifactId>graphematic-parser</artifactId>
-         <version>c6564ac2ac</version>
-      </dependency>
-      <dependency>
-         <groupId>com.github.jalexpr.tawt</groupId>
-         <artifactId>morphological-structures</artifactId>
-         <version>c6564ac2ac</version>
-      </dependency>
-      <dependency>
-         <groupId>com.github.jalexpr.tawt</groupId>
-         <artifactId>rules-for-compatibility</artifactId>
-         <version>c6564ac2ac</version>
-         <exclusions>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>morphological-structures</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
-      <dependency>
-         <groupId>com.github.jalexpr.tawt</groupId>
-         <artifactId>syntactic-parser</artifactId>
-         <version>c6564ac2ac</version>
-         <exclusions>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>morphological-structures</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>gama</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>ambiguity-words-filter</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>ru.textanalysis.tawt</groupId>
-               <artifactId>rules-for-compatibility</artifactId>
-            </exclusion>
-         </exclusions>
-      </dependency>
+      
+        <dependency>
+            <groupId>com.github.jalexpr</groupId>
+            <artifactId>tawt</artifactId>
+            <version>${version.tawt}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jalexpr.tawt</groupId>
+            <artifactId>gama</artifactId>
+            <version>${version.tawt}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>jmorfsdk</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>morphological-structures</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jalexpr.tawt</groupId>
+            <artifactId>ambiguity-words-filter</artifactId>
+            <version>${version.tawt}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>morphological-structures</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>rules-for-compatibility</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jalexpr.tawt</groupId>
+            <artifactId>jmorfsdk</artifactId>
+            <version>${version.tawt}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>morphological-structures</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>morphological-dictionary</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jalexpr.tawt</groupId>
+            <artifactId>graphematic-parser</artifactId>
+            <version>${version.tawt}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jalexpr.tawt</groupId>
+            <artifactId>morphological-structures</artifactId>
+            <version>${version.tawt}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jalexpr.tawt</groupId>
+            <artifactId>rules-for-compatibility</artifactId>
+            <version>${version.tawt}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>morphological-structures</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jalexpr.tawt</groupId>
+            <artifactId>syntactic-parser</artifactId>
+            <version>${version.tawt}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>morphological-structures</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>gama</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>ambiguity-words-filter</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ru.textanalysis.tawt</groupId>
+                    <artifactId>rules-for-compatibility</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jalexpr.tawt</groupId>
+            <artifactId>morphological-dictionary</artifactId>
+            <version>${version.tawt}</version>
+        </dependency>      
+      
       <dependency>
          <groupId>org.apache.httpcomponents</groupId>
          <artifactId>httpcore</artifactId>
@@ -154,7 +166,7 @@
          <artifactId>httpclient</artifactId>
          <version>4.3.6</version>
          <type>jar</type>
-      </dependency>
+      </dependency>   
    </dependencies>
    <repositories>
         <repository>
@@ -197,31 +209,6 @@
                <encoding>${project.build.sourceEncoding}</encoding>
             </configuration>
          </plugin>
-         <!--
-			<plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.university.abbrresolver.frame.MainWindow</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id> 
-                        <phase>package</phase> 
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
--->
       </plugins>
    </build>
 </project>

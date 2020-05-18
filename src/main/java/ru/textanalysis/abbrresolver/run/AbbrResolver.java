@@ -83,6 +83,7 @@ public class AbbrResolver {
         String copy = sentence.getContent(); //копируем все слова в переменную copy
         log.info("resolveAcronyms: copy= " + copy);  
         String[] acronymWords;
+        List<Boolean> acronymCaseSaver = new ArrayList<>();
         StringBuilder text = new StringBuilder("");
         for (int i = 0; i < descriptors.size(); i++) {
                 curDescriptor = descriptors.get(i);
@@ -104,6 +105,11 @@ public class AbbrResolver {
                 }
                 else {
                     acronymWords = curDescriptor.getDesc().split("");
+                }
+                //сохраняем кейс первых букв у расшифровки сокращения
+                for (int j = 0; j < acronymWords.length; j++) {
+                    acronymCaseSaver.add(acronymWords[j].substring(0, 1).matches("[А-Я]"));
+                    acronymWords[j] = acronymWords[j].toLowerCase();
                 }
                 log.info("resolveAcronyms: curDescriptor.getDesc().split(\" \")= " + curDescriptor.getDesc().split(" ").toString());                                 
                 log.info("resolveAcronyms: acronymWords= " + String.join(",", acronymWords));               
@@ -134,13 +140,22 @@ public class AbbrResolver {
                     }
                     catch(Exception e) {
                         log.info("resolveAcronyms: resolveAcronyms: can't acronymWords.length " + acronymWords.length);
-                        //e.printStacklog.info();
+                        e.printStackTrace();
                     }
                 }
-                log.info("resolveAcronyms: after mainWordAcronymIndex" + mainWordAcronymIndex);
+                log.info("resolveAcronyms: after mainWordAcronymIndex = " + mainWordAcronymIndex);
                 log.info("resolveAcronyms: Utils.concat(\" \", Arrays.asList(acronymWords)) = " + Utils.concat(" ", Arrays.asList(acronymWords)));
                 log.info("resolveAcronyms: curDescriptor.getValue()" + curDescriptor.getValue());
 //                copy = copy.replace(curDescriptor.getValue(), Utils.concat(" ", Arrays.asList(acronymWords)));      //replaceAll заменить
+                
+                //восстановили кейс первых букв
+                for (int j = 0; j < acronymWords.length; j++) {
+                    if (acronymCaseSaver.get(j)) {
+                        StringBuilder strBuffer = new StringBuilder(acronymWords[j]);
+                        strBuffer.setCharAt(0, Character.toUpperCase(acronymWords[j].charAt(0)));  
+                        acronymWords[j] = strBuffer.toString();
+                    }
+                }
                 
                 text.append(Utils.concat(" ", Arrays.asList(acronymWords)));
                 if (curDescriptorNext != null && curDescriptorNext.getType() != DescriptorType.PUNCTUATION_CHAR && curDescriptorNext.getType() != DescriptorType.SENTENCE_END)                
@@ -219,6 +234,7 @@ public class AbbrResolver {
                 }
                 catch (Exception e) {
                     log.error("getMainWordIndex: error = " + e.getMessage());   
+                    e.printStackTrace();
                     return null;
                 }
             }
@@ -250,6 +266,7 @@ public class AbbrResolver {
                 }
                 catch (Exception e) {
                     log.error("getMainWordIndex: error = " + e.getMessage());   
+                    e.printStackTrace();
                     return null;                    
                 }
             }
@@ -419,9 +436,11 @@ public class AbbrResolver {
 
     private void adaptAcronymWords(String[] acronymWords, int mainWordAcronymIndex, JMorfSdk jMorfSdk) throws Exception {
         String curWord;
+        log.info("adaptAcronymWords_acronymWords[mainWordAcronymIndex]= " + acronymWords[mainWordAcronymIndex]);
         IOmoForm acronymOmoForm = jMorfSdk.getAllCharacteristicsOfForm(acronymWords[mainWordAcronymIndex]).get(0);
         long acronymCase = acronymOmoForm.getTheMorfCharacteristics(MorfologyParameters.Case.IDENTIFIER); //определяем падеж главного слова
         log.info("adaptAcronymWords_acronymWords= " + String.join(",", acronymWords)); 
+        log.info("adaptAcronymWords_acronymCase= " + acronymCase);
         if (acronymCase != MorfologyParameters.Case.NOMINATIVE) {
             long lastNounNumbers = acronymOmoForm.getTheMorfCharacteristics(MorfologyParameters.Numbers.IDENTIFIER);
             long lastNounGender = acronymOmoForm.getTheMorfCharacteristics(MorfologyParameters.Gender.IDENTIFIER);

@@ -44,8 +44,8 @@ public class TextManager {
     private final DBManager dictionary;
     
     //регулярные выражения для сокращений
-    private final String regexpAbbr = "[A-ЯЁA-Z]{2,}";
-    private final String regexpStej = "[А-Яа-я.]+-[а-я]+";
+    private final String regexpAbbr = "[А-ЯЁA-Z]{2,}";
+    private final String regexpStej = "[А-Яа-я]+\\.-[а-я]+";
     private final String regexpUsech = "\\b[а-я]+\\.";
 
     public TextManager(PatternFinder patternFinder, AbbrResolver abbrResolver) {
@@ -68,7 +68,7 @@ public class TextManager {
     
     public List<Sentence> splitText(String text, JPanel findAbbrPanel) throws Exception {
         List<Sentence> temp = splitText(text);
-        boolean caseNextWord = true;
+        boolean lowCaseNextWord = false;
         abbrResolver.clearAbbrList();
         abbrResolver.clearAbbrListWithoutDesc();
         for(int i = 0; i < temp.size(); i++) {
@@ -84,10 +84,10 @@ public class TextManager {
                       while (" ".equals(temp.get(i + 1).getContent().substring(ind, ind + 1))) {
                          ind = ind + 1;
                       }
-                      caseNextWord = temp.get(i + 1).getContent().substring(ind, ind + 1).matches("[А-Я]");
+                      lowCaseNextWord = temp.get(i + 1).getContent().substring(ind, ind + 1).matches("[а-я]");
                 }
                 else
-                    caseNextWord = false;
+                    lowCaseNextWord = true;
             }
             
             if (words.length > 0) {
@@ -95,9 +95,9 @@ public class TextManager {
                 for (int j = 0; j < words.length; j++) {
                     if ("".equals(words[j]) || " ".equals(words[j])) continue;
                     if (j != words.length - 1)
-                        checkCase = false;
+                        checkCase = true;
                     else
-                        checkCase = caseNextWord;
+                        checkCase = lowCaseNextWord;
                     if (!checkWordType(words[j], sentenceDesc, j, checkCase)) {
                         Descriptor desc = new Descriptor(DescriptorType.RUSSIAN_LEX, j, words[j].length(), words[j]);
                         sentenceDesc.add(desc);
@@ -123,7 +123,7 @@ public class TextManager {
     }
 
     private boolean checkWordType(String s, List<Descriptor> sentenceDescm, int j, boolean caseNextWord) throws Exception {
-        log.info("s = " + s + "; caseNextWord = " + caseNextWord);
+        log.info("s = " + s + "; lowCaseNextWord = " + caseNextWord);
         //нашли ФИО
         List<Pattern> pList0 = PatternFinder.PATTERNS.get(DescriptorType.FIO);
         for (Pattern pList01 : pList0) {
@@ -181,7 +181,7 @@ public class TextManager {
             Descriptor desc2 = new Descriptor(DescriptorType.PUNCTUATION_CHAR, j + 2, matchP.group(3).length(), matchP.group(3));
             //содержимое скобок
             Descriptor desc1 = new Descriptor(DescriptorType.RUSSIAN_LEX, j + 1, matchP.group(2).length(), matchP.group(2));
-            if (!caseNextWord) {
+            if (caseNextWord) {
                 desc1 = setTypeAndDesc(desc1, regexpUsech, j);
                 if (desc1.getType() != DescriptorType.RUSSIAN_LEX) {
                     sentenceDescm.add(desc0);
@@ -210,7 +210,7 @@ public class TextManager {
         Pattern pattern0 = Pattern.compile("([А-Яа-я]+)(\\.{1,3}|!|\\?)");
         Matcher m0 = pattern0.matcher(s);
         if (m0.matches()) {
-            if (!caseNextWord) {
+            if (caseNextWord) {
                 Descriptor desc = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m0.group().length(), m0.group());
                 desc = setTypeAndDesc(desc, regexpUsech, j);
                 if (desc.getType() != DescriptorType.RUSSIAN_LEX) {
@@ -238,7 +238,7 @@ public class TextManager {
         Pattern pattern1 = Pattern.compile("([-\"])([А-Яа-я]+)(\\.{1,3}|!|\\?)");   
         Matcher m1 = pattern1.matcher(s);
         if (m1.matches()) {
-            if (!caseNextWord) {
+            if (caseNextWord) {
                 Descriptor desc = new Descriptor(DescriptorType.RUSSIAN_LEX, j, m1.group().length(), m1.group());
                 desc = setTypeAndDesc(desc, regexpUsech, j);
                 if (desc.getType() != DescriptorType.RUSSIAN_LEX) {
@@ -342,6 +342,7 @@ public class TextManager {
             }
             else {
                 String abbrValue = abbr.getValue();
+                log.info("add unknown abbr = " + abbrValue + " with regExp = " + regExp);
                 toAbbrList = abbrValue + " : Расшифровка отсутствует в словаре";
                 if(!abbrResolver.getAbbrListWithoutDesc().contains(toAbbrList)) {
                     abbrResolver.getAbbrListWithoutDesc().add(toAbbrList);
@@ -387,6 +388,7 @@ public class TextManager {
         }
         else {
             String abbrValue = abbr.getValue();
+            log.info("add unknown abbr = " + abbrValue);
             toAbbrList = abbrValue + " : Расшифровка отсутствует в словаре";
                 if(!abbrResolver.getAbbrListWithoutDesc().contains(toAbbrList)) {
                     abbrResolver.getAbbrListWithoutDesc().add(toAbbrList);

@@ -100,7 +100,7 @@ public class DBManager implements Closeable {
 
     public List<String> findAbbrLongForms(String abbr) throws Exception {
         List<String> values = new ArrayList<>();
-        PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id WHERE shortForm.value = '" + abbr + "'");
+        PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id WHERE shortForm.value = '" + abbr + "' order by longForm.id");
         ResultSet resultSet = stmt.executeQuery();
         while(resultSet.next()){
             values.add(resultSet.getString(1));
@@ -114,7 +114,7 @@ public class DBManager implements Closeable {
     public List<String> findAbbrLongFormsWithMainWord(String abbr, String codeTopic) throws Exception {
         log.info("codeTopic = " + codeTopic);
         List<String> values = new ArrayList<>();
-        PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id INNER JOIN relLongKnowledge ON relLongKnowledge.longFormId = longForm.id  WHERE shortForm.value = '" + abbr + "' and relLongKnowledge.knowledgeId = '" + codeTopic + "'");
+        PreparedStatement stmt = conn.prepareStatement("SELECT longForm.definition FROM shortForm INNER JOIN longForm ON longForm.shortFormId = shortForm.id INNER JOIN relLongKnowledge ON relLongKnowledge.longFormId = longForm.id  WHERE shortForm.value = '" + abbr + "' and relLongKnowledge.knowledgeId = '" + codeTopic + "' order by longForm.id");
         ResultSet resultSet = stmt.executeQuery();
         while(resultSet.next()){
             values.add(resultSet.getString(1));

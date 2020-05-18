@@ -23,7 +23,12 @@ public class Test {
         Pattern pattern3 = Pattern.compile("([-\"])([А-Яа-я]+)(,|:|\"|-)");   
         Pattern pattern = Pattern.compile("[,\\.\\-\\?\\!\\:\"]");
         Matcher m = pattern.matcher(":");
-        System.out.println(m.matches());        
-        System.out.println(m.group());
+        //System.out.println(m.matches());        
+        //System.out.println(m.group());
+        
+        Pattern patternTest = Pattern.compile("[A-Я]{2,}");
+        Matcher mTest = patternTest.matcher("Рn");
+        System.out.println(mTest.matches());        
+        System.out.println(mTest.group());
     }    
 }
