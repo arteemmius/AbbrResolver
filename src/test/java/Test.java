@@ -4,8 +4,11 @@
  * and open the template in the editor.
  */
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import ru.textanalysis.tawt.ms.external.sp.BearingPhraseExt;
+import ru.textanalysis.tawt.sp.api.SyntaxParser;
 
 /**
  *
@@ -25,10 +28,12 @@ public class Test {
         Matcher m = pattern.matcher(":");
         //System.out.println(m.matches());        
         //System.out.println(m.group());
-        
-        Pattern patternTest = Pattern.compile("[A-Я]{2,}");
-        Matcher mTest = patternTest.matcher("Рn");
-        System.out.println(mTest.matches());        
-        System.out.println(mTest.group());
+        String sent = "Солнце село за село.";
+      System.out.println(sent + ":");
+      SyntaxParser sp = new SyntaxParser();
+      List<BearingPhraseExt> exts = sp.getTreeSentenceWithoutAmbiguity(sent);
+      exts.forEach(bearingPhraseExt -> {
+          System.out.println(bearingPhraseExt.getMainOmoForms());
+      });
     }    
 }
