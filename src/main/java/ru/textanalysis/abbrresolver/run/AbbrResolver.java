@@ -275,16 +275,27 @@ public class AbbrResolver {
     }
 
     private Integer getPrepositionIndex(List<Descriptor> descriptors, int acronymIndex, int mainWordIndex, JMorfSdk jMorfSdk) throws Exception {
+        log.info("acronymIndex = " + acronymIndex);
+        log.info("mainWordIndex = " + mainWordIndex);
         int delta = acronymIndex - mainWordIndex;
         int startIndex = delta > 0 ? mainWordIndex : acronymIndex;
         int endIndex = startIndex + Math.abs(delta);
+        log.info("delta = " + delta);
+        log.info("startIndex = " + startIndex);
+        log.info("endIndex = " + endIndex);
         for (int wordIndex = startIndex + 1; wordIndex < endIndex; wordIndex++) {
             Descriptor curDescriptor = descriptors.get(wordIndex);
+            log.info("wordIndex = " + wordIndex);
+            log.info("descriptors.get(wordIndex)_value = " + descriptors.get(wordIndex).getValue());
+            log.info("descriptors.get(wordIndex)_type = " + descriptors.get(wordIndex).getType());
             try {
                 if (Objects.equals(curDescriptor.getType(), DescriptorType.RUSSIAN_LEX) && !Character.isUpperCase(curDescriptor.getValue().charAt(0))) {
-                    IOmoForm wordOmoForm = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue()).get(0);
-                    if (wordOmoForm.getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.PRETEXT) { 
-                        return wordIndex;
+                    List<IOmoForm> wordOmoForm = jMorfSdk.getAllCharacteristicsOfForm(curDescriptor.getValue());
+                    for (int i = 0; i < wordOmoForm.size(); i++) {
+                        log.info("wordOmoForm_i = " + wordOmoForm.get(i));                        
+                        if (wordOmoForm.get(i).getTypeOfSpeech() == MorfologyParameters.TypeOfSpeech.PRETEXT) { 
+                            return wordIndex;
+                        }
                     }
                 }
             }
